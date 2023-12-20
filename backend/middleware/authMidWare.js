@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const authenUser = (req, res, next) => {
+const authenToken = (req, res, next) => {
     const tkn = req.headers['authorisation']; // token is sent in authorisation header
 
     if (!tkn) {
@@ -17,4 +17,4 @@ const authenUser = (req, res, next) => {
     return res.status(200).send('Token is valid');
 }
 
-module.exports = { authenUser };
+module.exports = { authenToken };

@@ -13,4 +13,4 @@ const con = mysql.createPool({
 // })
 
 
-module.exports = con;
+module.exports = con.promise();
