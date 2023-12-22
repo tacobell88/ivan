@@ -5,12 +5,6 @@ const con = mysql.createPool({
     user : "root",
     password : "admin",
     database: "assignment1"
-});
-
-// con.connect(err => {
-//   if (err) throw err;
-//   console.log('Database is connected succesfully');
-// })
-
+})
 
 module.exports = con.promise();

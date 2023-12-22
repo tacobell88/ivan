@@ -1,20 +1,28 @@
 const jwt = require('jsonwebtoken');
+const catchASyncError = require('./catchASyncError');
 
-const authenToken = (req, res, next) => {
-    const tkn = req.headers['authorisation']; // token is sent in authorisation header
+exports.isAuthenticated = catchASyncError(async (req, res, next) => {
+    let token;
 
-    if (!tkn) {
-        return res.status(403).send('Token is needed');
-    }
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-    } catch (error) {
-        return res.status(401).send('Invalid token');
+    // if token is valid then assign it to token variable declared above
+    if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
     }
     
-    return res.status(200).send('Token is valid');
-}
+    // if token does not exist return error
+    if(!token) {
+        return next(new ErrorHandler('Login first to access this resource.', 401));
+    }
 
-module.exports = { authenToken };
+    // check if token is valid
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // finding user in database that matches token id
+    // req.user = await User.findById(decoded.id);
+
+    next();
+});
+
+// exports.isAuthRole = (req, res) => {
+    
+// };

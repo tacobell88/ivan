@@ -12,15 +12,12 @@ const createUser = async (username, password, email = null, userGroup = null, us
 };
 
 const findByUsername = async (username) => {
-    
-};
+    try {
+        const sql = `SELECT * from accounts WHERE username = ?`;
+        const
+    } catch (error) {
+        
+    }
+}
 
-module.exports = { createUser, findByUsername };
-
-// const createUser = async (username, password, email) => {
-//     const sql = `INSERT INTO accounts (username, email, password) VALUES (?,?,?)`;
-//     const [results] = await db.execute(query, [username, password, email]);
-//     return results;
-//     };
-
-// module.exports = { createUser };
+module.exports = { createUser };
