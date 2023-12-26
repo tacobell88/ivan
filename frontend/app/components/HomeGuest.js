@@ -1,15 +1,9 @@
 import React, { useEffect } from "react";
-import Container from "./Container";
+import Page from "./Page";
 
 function HomeGuest () {
-    useEffect(() => {
-        document.title = "TMS | Login";
-        window.scrollTo(0, 0);
-    }, [])
-
-
-    return (
-        <Container>
+ return (
+        <Page title ="Login">
         <div className="row align-items-center">
             <div className="col-lg-4 pl-lg-5 pb-3 py-lg-5">
                 <form>
@@ -42,8 +36,8 @@ function HomeGuest () {
                 </form>
             </div>
         </div>
-        </Container>
+        </Page>
     )
 };
 
-export default HomeGuest;
+export default HomeGuest
