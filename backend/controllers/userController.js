@@ -31,7 +31,7 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 exports.createUser = catchASyncError(async (req, res, next) => {
     const { username, password, user_group, email} = req.body
 
-    // ****** TO FIX USER_GROUP & EMAIL SHOW NULL IN DATABASE IF NO USER INPUT
+    // ****** TO FIX USER_GROUP & EMAIL SHOW NULL IN DATABASE IF NO USER INPUT ******
     // user group is optional if user does not select a user group, user group will be saved null
     if (!user_group) {
         user_group == null;

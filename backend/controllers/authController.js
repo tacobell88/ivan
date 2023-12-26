@@ -47,5 +47,5 @@ exports.userLogin = catchASyncError(async (req, res) => {
 });
 
 exports.userLogout = (req, res) => {
-
+    
 };
