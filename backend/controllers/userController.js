@@ -1,13 +1,7 @@
 const db = require('../config/database');
-const catchASyncError = require('../middlewares/catchASyncError');
 const bcrypt = require('bcryptjs');
 
-// validating password input when creating a new user
-function passwordChecker (str) {
-    // 8-10 characters, 1 alphabet, 1 number, 1 special character
-    const passRegex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,10}$/);
-    return passRegex.test(str);
-};
+const catchASyncError = require('../middlewares/catchASyncError');
 
 // display all user function
 exports.showAllUser = catchASyncError(async (req, res, next) => {
@@ -73,3 +67,10 @@ exports.toggleUserStatus = catchASyncError(async (req, res) => {
     
     const sql = `UPDATE accounts SET user_status = '?' WHERE username = '?'`
 });
+
+// validating password input when creating a new user
+function passwordChecker (str) {
+    // 8-10 characters, 1 alphabet, 1 number, 1 special character
+    const passRegex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,10}$/);
+    return passRegex.test(str);
+};

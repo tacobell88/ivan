@@ -1,4 +1,5 @@
 const db = require('../config/database');
+// const catchASyncError = require('../middlewares/catchASyncError');
 const catchASyncError = require('../middlewares/catchASyncError');
 
 //creating a new role

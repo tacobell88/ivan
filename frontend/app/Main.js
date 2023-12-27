@@ -7,6 +7,7 @@ import HomeGuest from './components/HomeGuest'
 import Footer from './components/Footer'
 import UserManagement from './components/userManagement'
 import Terms from './components/Terms'
+import UserTable from './components/UserTable'
 
 
 function Component () {
@@ -18,6 +19,7 @@ function Component () {
                 <Route path="/user-management" element={<UserManagement />} />
                 <Route path="/terms" element={<Terms />} />
             </Routes>
+            <UserTable />
             <Footer />
         </BrowserRouter>
         
