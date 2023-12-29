@@ -3,24 +3,24 @@ import ReactDOM from 'react-dom'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 
 import Header from './components/Header'
-import HomeGuest from './components/HomeGuest'
+import Login from './components/Login'
 import Footer from './components/Footer'
 import UserManagement from './components/userManagement'
 import Terms from './components/Terms'
 import UserTable from './components/UserTable'
+import ExampleTable from './components/ExampleTable'
 
 
 function Component () {
     return (
         <BrowserRouter>
             <Header />
+            
             <Routes>
-                <Route path="/" element={<HomeGuest />} />
-                <Route path="/user-management" element={<UserManagement />} />
-                <Route path="/terms" element={<Terms />} />
+                <Route path="/" element={<Login />} />
+                <Route path="/user-management" element={<ExampleTable />} />
+                <Route path="/user-profile" element={<UserProfile />} />
             </Routes>
-            <UserTable />
-            <Footer />
         </BrowserRouter>
         
     )

@@ -3,7 +3,7 @@ import React from "react"
 function Header () {
 return (
     <>
-    <header className="header-bar bg-primary mb-3">
+    <header className="header-bar bg-primary mb-2">
         <div className="container d-flex flex-column flex-md-row align-items-center p-3">
             <h4 className="my-0 mr-md-auto font-weight-normal">
                 <a href="/" className="text-white">
@@ -27,6 +27,11 @@ return (
                 </div>
             </form>
             */}
+        </div>
+        <div className="">
+            <a href="/user-management" className="text-white"> User Management </a>
+            <a href="/user-profile" className="text-white"> My Profile </a>
+            <a href="/logout" className="text-white"> Logout </a>
         </div>
     </header>
     </>

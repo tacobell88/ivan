@@ -2,6 +2,14 @@ import React, { useEffect } from "react";
 import Page from "./Page.js";
 
 function UserManagement () {
+    function handleSubmit(e) {
+        e.preventDefault()
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
     return (
         <Page title="User Management">
             <h2>User Management</h2>
@@ -19,7 +27,7 @@ function UserManagement () {
                 </form>
             </div>
             <div>
-                <form className="mb-0 pt-4 pt-md-0">
+                <form className="mb-0 pt-4 pt-md-0" onSubmit={handleSubmit}>
                     <div className="row align-items-center">
                         <div className="col-md mr-0 pr-md-0 mb-3 mb-md-0">
                             <input name="username" className="form-control form-control-sm input-dark" type="text"

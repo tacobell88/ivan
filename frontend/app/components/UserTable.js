@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 
+const dummyUsers = [
+    {
+        username: 'test', password: 'test', email : 'test@abc.com', user_group : "dev,pm", user_status: "active"
+    },
+    {
+        username: 'test2', password: 'test2', email : 'test@abc.com', user_group : "admin", user_status: "active"
+    },
+]
+
 function UserTable () {
-
-    const dummyUsers = [
-        {
-            username: 'test', password: 'test', email : 'test@abc.com', user_group : "dev,pm", user_status: "active"
-        },
-        {
-            username: 'test2', password: 'test2', email : 'test@abc.com', user_group : "admin", user_status: "active"
-        },
-    ]
-
     const groupOptions = [
         'dev', 'pl', 'admin', 'test'
     ]
@@ -95,9 +94,11 @@ function UserTable () {
                     </tr>
                 </thead>
                 <tbody>
-                    {users.map(user => (
+                {users.map(user => {
+                    return (
                         <tr key={user.username}>
-                            <td>
+                            <td>{user.username}</td>
+                            {/*<td>
                                 {isEditing(user.username) ? <input type="text" defaultValue={user.username} /> : user.username}
                             </td>
                             <td>
@@ -108,9 +109,10 @@ function UserTable () {
                             </td> 
                             <td>
                                 {isEditing(user.username) ? <input type="password" defaultValue={user.password} /> : user.password}
-                            </td>              
+                    </td>*/}    
                         </tr>
-                    ))}
+                    )
+                })}
                 </tbody>   
             </table>
         </div>

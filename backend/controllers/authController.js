@@ -9,7 +9,7 @@ exports.userLogin = catchASyncError(async (req, res) => {
 
     //if username or password is not entered
     if (!userId || !password) {
-        return res.status(400).send('Invalid Login Credentials');
+        return res.status(400).send('Please enter username/password');
     };
 
     //checking if username exist in database
@@ -23,7 +23,7 @@ exports.userLogin = catchASyncError(async (req, res) => {
     //check if password matches entered password
     const isPassMatch = await bcrypt.compare(password, row[0].password);
     if (!isPassMatch) {
-        return res.status(401).send('Invalid Login Credentials');
+        return res.status(401).send('Invalid Password');
         // return res.status(401).json({
         //     success : false,
         //     message : row[0].user_status
