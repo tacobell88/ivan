@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const catchASyncError = require('./catchASyncError');
 const db = require('../config/database');
+const checkGroup = require('../controllers/authController');
 
 exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     let token;
@@ -38,6 +39,17 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     next();
 });
 
-exports.isAuthRole = (req, res) => {
-    
+exports.isAuthRole = (...groups) => {
+    return catchASyncError(async (req, res, next) => {
+        const auth = await checkGroup(req.user['userId'], groups);
+
+        if (!auth) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not allowed to view this resource'
+            })
+        }
+
+        next();
+    })
 };

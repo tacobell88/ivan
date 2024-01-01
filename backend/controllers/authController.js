@@ -40,6 +40,7 @@ exports.userLogin = catchASyncError(async (req, res) => {
     const token = jwt.sign({userId : userId}, process.env.JWT_SECRET, 
                         {expiresIn : process.env.JWT_EXPIRES_TIME});
     
+    delete row[0].password;
     row[0].token = token;
 
     res.status(200).json({
@@ -61,3 +62,24 @@ exports.userLogout = catchASyncError(async (req, res) => {
         message: 'Log out successfully'
     })
 });
+
+exports.checkGroup = catchASyncError(async (userId, GroupName) => {
+    //get user data from database
+    const [row, fields] = await db.execute(`SELECT user_group FROM accounts WHERE username= ?;`, [userId]);
+
+    if (row.length == 0) {
+        return false;
+    }
+
+    //get current user groups
+    const user_group = row[0]["user_group"].split(",");
+    //get intersection of user group and allowed group to see if user is authorized
+    const authorizedGroup = GroupName.filter((value) => user_group.includes(value));
+
+    //if len>0 means user is authorized
+    if (authorizedGroup.length > 0) {
+        return true;
+    }
+
+    return false;
+})

@@ -2,20 +2,27 @@ const express = require('express');
 const router = express.Router();
 
 const { 
-    createRole,
+    createGroup,
     getAllUserGroup 
 } = require('../controllers/groupController');
 
 const { 
     showAllUser,
-    createUser
+    createUser,
+    adminEditUser,
+    editUserProfile
 } = require('../controllers/userController');
 
+const { isAuthenticated,
+        isAuthRole } = require('../middlewares/authMidware');
+
+// routes relating to users
 router.route('/users/getUsers').get(showAllUser);
 router.route('/users/createUser').post(createUser);
+router.route('')
 
 // routes relating to user groups (roles)
-router.route('/users/createRole').post(createRole);
+router.route('/users/createRole').post(createGroup);
 router.route('/users/getAllRoles').get(getAllUserGroup)
 
 module.exports = router;

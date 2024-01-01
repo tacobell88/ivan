@@ -3,12 +3,16 @@ const db = require('../config/database');
 const catchASyncError = require('../middlewares/catchASyncError');
 
 //creating a new role
-exports.createRole = catchASyncError(async (req, res) => {
+exports.createGroup = catchASyncError(async (req, res) => {
     const { user_group } = req.body;
 
     // if user enters invalid group name (empty field)
     if (!user_group) {
         res.status(400).send('Please enter a group');
+    }
+
+    if (user_group.includes(',')) {
+        return res.status(400).send('Invalid group name')
     }
 
     try {

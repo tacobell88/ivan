@@ -3,10 +3,17 @@ const bcrypt = require('bcryptjs');
 
 const catchASyncError = require('../middlewares/catchASyncError');
 
+
+function validatePassword (str) {
+    // 8-10 characters, 1 alphabet, 1 number, 1 special character
+    const passRegex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,10}$/);
+    return passRegex.test(str);
+};
+
 // display all user function
 exports.showAllUser = catchASyncError(async (req, res, next) => {
     try {
-        const [rows, field] = await db.execute(`SELECT * FROM accounts`);
+        const [rows, fields] = await db.execute(`SELECT * FROM accounts`);
         return res.status(200).json({
             success: true,
             message: rows
@@ -23,26 +30,26 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 
 // create a new user function
 exports.createUser = catchASyncError(async (req, res, next) => {
-    const { username, password, user_group, email} = req.body
+    const { userId, password, email, user_group } = req.body
 
     // ****** TO FIX USER_GROUP & EMAIL SHOW NULL IN DATABASE IF NO USER INPUT ******
     // user group is optional if user does not select a user group, user group will be saved null
     if (!user_group) {
-        user_group == null;
+        user_group = null;
     };
 
     // email is optional so if email is not valid input, user email will be saved as null
     if (!email) {
-        email == null;
+        email = null;
     };
 
     // if username and/or password is not valid
-    if (!username || !password) {
+    if (!userId || !password) {
         return res.status(400).send('Username/password required');
     };
 
     // if username is valid input password will be checked
-    if (!passwordChecker(password)) {
+    if (!validatePassword(password)) {
         return res.status(400).send('Invalid Password')
     };
 
@@ -51,7 +58,7 @@ exports.createUser = catchASyncError(async (req, res, next) => {
         const hashPassword = await bcrypt.hash(password, 10);
         const sql = `INSERT INTO accounts (username, password, email, user_group, user_status) VALUES (?,?,?,?,?)`;
         // console.log(db.execute(sql, [username, hashPassword, email, user_group, user_status]));
-        const [row, field] = await db.execute(sql, [username, hashPassword, email, user_group, user_status]);
+        const [row, field] = await db.execute(sql, [userId, hashPassword, email, user_group, user_status]);
         return res.status(200).send('user added into database');
     } catch (error) {
         console.log(error);
@@ -62,15 +69,71 @@ exports.createUser = catchASyncError(async (req, res, next) => {
     };
 });
 
-exports.toggleUserStatus = catchASyncError(async (req, res) => {
-    const { username, user_status } = req.body;
+// admin edits user details
+exports.adminEditUser = catchASyncError(async (req, res) => {
+    const { userId, password, email, user_group, user_status } = req.body;
+
+    if (password) {
+        if (!validatePassword(password)) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid Password'
+            })
+        }
+        password = await bcrypt.hash(password, 10);
+    } else {
+        password = null;
+    }
     
-    const sql = `UPDATE accounts SET user_status = '?' WHERE username = '?'`
+    // email is optional so if email is not valid input, user email will be saved as null
+    if (!email) {
+        email = null;
+    };
+
+    if (!(user_status === 'active')) [
+        user_status = 'disabled'
+    ];
+
+    //if password==null then use old password database value, if email==null then set null in database
+    const sql = `UPDATE accounts SET email = ?, user_group = ?, user_status = ?,password = COALESCE(?,password) WHERE username = ?;`
+    const [row, fields] = await db.execute(sql, [email, user_group, user_status, password, userId]);
+
+    return res.status(200).json({
+        success: true,
+        messgae: 'Edit user success'
+    })
 });
 
-// validating password input when creating a new user
-function passwordChecker (str) {
-    // 8-10 characters, 1 alphabet, 1 number, 1 special character
-    const passRegex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,10}$/);
-    return passRegex.test(str);
-};
+exports.editUserProfile = catchASyncError(async (req, res, next) => {
+    const userId = req.user['userId'];
+    const { password, email } = req.body;
+
+    if (!email) {
+        email = null;
+    };
+
+    if (password) {
+        if (!validatePassword(password)) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid Password'
+            })
+        }
+        password = await bcrypt.hash(password, 10);
+    } else {
+        password = null;
+    }
+
+    const sql = `UPDATE accounts SET email = ?, password = COALESCE(?,password) WHERE username = ?;`
+    const [row, fields] = await db.execute(sql, [email, password, userId]);
+
+    return res.status(200).json({
+        success: true,
+        messgae: 'User profile updated'
+    })
+});
+
+
+    
+
+
