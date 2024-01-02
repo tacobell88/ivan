@@ -12,6 +12,7 @@ import UserManagement from './components/UserManagement'
 import HomePage from './components/HomePage'
 import UserTable from './components/UserTable'
 import ExampleTable from './components/ExampleTable'
+import UserProfile from './components/UserProfile';
 
 
 function Component () {
@@ -22,8 +23,8 @@ function Component () {
             <Header />
             <Routes>
                 <Route path="/" element={<Login />} />
-                <Route path="/user-management" element={<ExampleTable />} />
-                <Route path="" />
+                <Route path="/user-management" element={<UserManagement />} />
+                <Route path="/user-profile" element={<UserProfile/>} />
                 {/* <Route path="/user-profile" element={<UserProfile />} /> */}
                 
             </Routes>

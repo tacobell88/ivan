@@ -1,9 +1,10 @@
-import React from "react"
+import React, { useState } from "react"
 import { Link } from "react-router-dom"
+import HeaderLoggedIn from "./HeaderLoggedIn"
 
 function Header () {
-    const [loggedIn, setLoggedIn] = useState()
-    
+    const [loggedIn, setLoggedIn] = useState([]);
+
     return (
         <header className="header-bar bg-primary mb-2">
             <div className="container d-flex flex-column flex-md-row align-items-center p-3">
@@ -12,8 +13,9 @@ function Header () {
                         Task Management System
                     </Link>
                 </h4>
+                <HeaderLoggedIn />
+                {/* {loggedIn ? <HeaderLoggedIn setLoggedIn={setLoggedIn} /> : <p> </p> } */}
             </div>
-            {loggedIn ? <HeaderLoggedIn setLoggedIn={setLoggedIn} /> : <p> </p> }
         </header>
     )
 }
