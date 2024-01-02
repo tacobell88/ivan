@@ -25,7 +25,7 @@ export default function CreateGroup () {
     return (
         <div className="container">
             <div className="row justify-content-center">
-                <div className="col-lg-8 pb-3 pt-2">
+                <div className="col-lg-8 pb-3 pt-5">
                     <form className="mb-0 pt-4 pt-md-0" onSubmit={handleSubmit}>
                         <div className="row align-items-center">
                             <div className="col-md-3 pr-md-1 mb-3 mb-md-0">

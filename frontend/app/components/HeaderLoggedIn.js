@@ -1,14 +1,101 @@
 import React from "react";
-import { Link } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
+
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import MuiLink from '@mui/material/Link'; // Rename to avoid naming conflict
+import Button from '@mui/material/Button';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+function HeaderLoggedIn() {
+    const defaultTheme = createTheme();
+
+    return (
+        <ThemeProvider theme={defaultTheme}>
+            <nav>
+                <MuiLink
+                  component={RouterLink}
+                  to="/user-management"
+                  variant="button"
+                  color="text.primary"
+                  sx={{ my: 1, mx: 1.5 }}
+                >
+                 User Management
+                </MuiLink>
+                <MuiLink
+                  component={RouterLink}
+                  to="/user-profile"
+                  variant="button"
+                  color="text.primary"
+                  sx={{ my: 1, mx: 1.5 }}
+                >
+                  My Profile
+                </MuiLink>
+            </nav>
+            <Button 
+              component={RouterLink} 
+              to="/logout" 
+              variant="outlined" 
+              sx={{ 
+                my: 1, 
+                mx: 1.5, 
+                color: 'black', // Text color
+                backgroundColor: 'white', // Background color
+                '&:hover': {
+                  backgroundColor: '#f5f5f5', // Light grey background on hover
+                  color: 'black',
+                }
+              }}>
+                Log Out
+            </Button>
+        </ThemeProvider>
+    );
+}
+
+export default HeaderLoggedIn;
+
+
+{/*
+import React from "react";
+
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
+import Button from '@mui/material/Button';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 function HeaderLoggedIn () {
+
+    const defaultTheme = createTheme();
+
     return (
-        <div className="flex-row my-3 my-md-0">
-            <Link to="/user-management" className="text-white"> User Management </Link>
-            <Link to="/user-profile" className="text-white"> My Profile </Link>
-            <Link to="/logout" className="text-white"> Logout </Link>
-        </div>
+        <ThemeProvider theme={defaultTheme}>
+        <nav>
+            <Link
+              variant="button"
+              color="text.primary"
+              href="#"
+              sx={{ my: 1, mx: 1.5 }}
+            >
+             User Management
+            </Link>
+            <Link
+              variant="button"
+              color="text.primary"
+              href="#"
+              sx={{ my: 1, mx: 1.5 }}
+            >
+              My Profile
+            </Link>
+        </nav>
+            <Button href="#" variant="outlined" sx={{ my: 1, mx: 1.5 }}>
+                Sign Out
+            </Button>
+        </ThemeProvider>
     )
 }
 
 export default HeaderLoggedIn
+*/}

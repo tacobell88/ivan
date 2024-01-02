@@ -23,6 +23,7 @@ function Component () {
             <Header />
             <Routes>
                 <Route path="/" element={<Login />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/user-management" element={<UserManagement />} />
                 <Route path="/user-profile" element={<UserProfile/>} />
                 {/* <Route path="/user-profile" element={<UserProfile />} /> */}

@@ -22,6 +22,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
 
     // check if token is valid
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded);
 
     // finding user in database that matches token id
     const [row, data] = await db.execute(`SELECT * FROM accounts where username = ?`, [decoded.userId]);
