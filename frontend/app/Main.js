@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie';
@@ -10,7 +10,6 @@ import Login from './components/Login'
 import HeaderLoggedIn from './components/HeaderLoggedIn'
 import UserManagement from './components/UserManagement'
 import HomePage from './components/HomePage'
-import UserTable from './components/UserTable'
 import ExampleTable from './components/ExampleTable'
 import UserProfile from './components/UserProfile';
 

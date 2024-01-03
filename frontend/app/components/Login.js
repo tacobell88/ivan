@@ -10,7 +10,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-function Login({ setLoggedIn, setUserDetails }) {
+function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -18,8 +18,10 @@ function Login({ setLoggedIn, setUserDetails }) {
 
     async function handleSubmit(e) {
         e.preventDefault();
+        console.log(username);
+        console.log(password);
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/login', {
+            const response = await axios.post('http://localhost:8000/login', {
                 userId: username,
                 password: password
             });
@@ -28,8 +30,6 @@ function Login({ setLoggedIn, setUserDetails }) {
                 // Assuming the JWT token is in response.data.token
                 Cookies.set('token', response.data.token, { expires: 7 });
                 // Optionally set user details in state for global access
-                setUserDetails(response.data.user);
-                setLoggedIn(true);
                 alert('Login Success');
             } else {
                 alert('Login Failed');
@@ -55,9 +55,9 @@ function Login({ setLoggedIn, setUserDetails }) {
         >
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField margin="normal" required fullWidth id="username" label="Username"
-              name="username" autoComplete="username" autoFocus />
+              name="username" autoComplete="username" autoFocus onChange={(e) => setUsername(e.target.value)}/>
             <TextField margin="normal" required fullWidth name="password" label="Password" 
-                        type="password" id="password" autoComplete="off" />
+                        type="password" id="password" autoComplete="off" onChange={(e) => setPassword(e.target.value)}/>
             <Button type="submit" fullWidth variant="contained" 
                     sx={{ mt: 3, mb: 2 }} > Sign In </Button>
           </Box>

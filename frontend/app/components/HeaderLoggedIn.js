@@ -18,7 +18,7 @@ function HeaderLoggedIn() {
                   component={RouterLink}
                   to="/user-management"
                   variant="button"
-                  color="text.primary"
+                  color="inherit"
                   sx={{ my: 1, mx: 1.5 }}
                 >
                  User Management
@@ -27,7 +27,7 @@ function HeaderLoggedIn() {
                   component={RouterLink}
                   to="/user-profile"
                   variant="button"
-                  color="text.primary"
+                  color="inherit"
                   sx={{ my: 1, mx: 1.5 }}
                 >
                   My Profile
