@@ -1,12 +1,8 @@
 import React from "react";
 import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
 
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import MuiLink from '@mui/material/Link'; // Rename to avoid naming conflict
-import Button from '@mui/material/Button';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { AppBar, Toolbar, Typography, Button, createTheme, ThemeProvider } from '@mui/material/';
 
 function HeaderLoggedIn() {
     const defaultTheme = createTheme();
@@ -53,7 +49,7 @@ function HeaderLoggedIn() {
     );
 }
 
-export default HeaderLoggedIn;
+export default HeaderLoggedIn
 
 
 {/*

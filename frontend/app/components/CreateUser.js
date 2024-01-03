@@ -1,27 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Stack, Box, Grid } from '@mui/material/';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Stack, Grid } from '@mui/material/';
 import CancelIcon from "@mui/icons-material/Cancel";
+import axios from "axios";
 
 function CreateUser() {
     const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [] });
     const [groups, setGroups] = useState([]);
 
     useEffect(() => {
-        // Simulating fetching group data from API
-        const fetchedGroups = ["admin", "dev", "pl", "pm"]; // Replace with actual API call
-        setGroups(fetchedGroups);
+        // API call to fetch user group data
+        const fetchGroups = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/users/getAllRoles');
+                const groupData = response.data.message.map(group => group.user_group);
+                setGroups(groupData);
+            } catch (error) {
+                console.error('Error fetching group data:', error);
+                // Handle errors as appropriate
+            }
+        };
+    
+        fetchGroups();
     }, []);
 
     const handleChange = (e) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
     };
 
+    const handleDelete = (valueToDelete) => {
+        // This function will be called when a chip's delete icon is clicked
+        setUserData(prevState => ({
+            ...prevState,
+            userGroups: prevState.userGroups.filter(group => group !== valueToDelete)
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // API call to create user
-        // Example: axios.post('api_endpoint', userData);
-        console.log('Submitted Data:', userData);
-        // Reset form or give feedback to user
+        // Aligning the data structure with backend expectations
+        const submitData = {
+            userId: userData.username,  // Assuming 'username' in frontend corresponds to 'userId' in backend
+            password: userData.password,
+            email: userData.email,
+            user_group: userData.userGroups.join(',') // Join userGroups with a comma
+        };
+        try {
+            const response = await axios.post('http://localhost:8000/users/createUser', submitData);
+            console.log('User creation response:', response.data);
+            // Handle response and reset form or give feedback to user
+        } catch (error) {
+            console.error('Error creating user:', error);
+            // Handle error response
+        }
     };
 
     return (
@@ -61,7 +91,7 @@ function CreateUser() {
                         />
                     </Grid>
                     <Grid item>
-                        <FormControl variant="outlined" size="small"> {/* Set specific width */}
+                    <FormControl variant="outlined" size="small" fullWidth>
                             <InputLabel>User Group</InputLabel>
                             <Select
                                 multiple
@@ -72,12 +102,13 @@ function CreateUser() {
                                 renderValue={(selected) => (
                                     <Stack direction="row" spacing={1}>
                                         {selected.map((value) => (
-                                            <Chip key={value} label={value} deleteIcon={<CancelIcon />} onDelete={() => {
-                                                setUserData(prevState => ({
-                                                    ...prevState,
-                                                    userGroups: prevState.userGroups.filter(group => group !== value)
-                                                }));
-                                            }} />
+                                            <Chip
+                                                key={value}
+                                                label={value}
+                                                deleteIcon={<CancelIcon />}
+                                                onDelete={() => handleDelete(value)}
+                                                onMouseDown={(event) => event.stopPropagation()} // Prevents Select dropdown from closing
+                                            />
                                         ))}
                                     </Stack>
                                 )}

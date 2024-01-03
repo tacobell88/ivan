@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import HeaderLoggedIn from "./HeaderLoggedIn";
-
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 import { Link as RouterLink } from 'react-router-dom';
-import Button from '@mui/material/Button';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+import {AppBar, Toolbar, Button, createTheme, ThemeProvider} from '@mui/material/';
+
 
 function Header(props) {
     const [loggedIn, setLoggedIn] = useState([]);

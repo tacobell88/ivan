@@ -3,12 +3,7 @@ import Page from "./Page";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Button, CssBaseline, TextField, Box, Container, createTheme, ThemeProvider } from '@mui/material/';
 
 function Login() {
     const [username, setUsername] = useState("");

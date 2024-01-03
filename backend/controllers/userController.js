@@ -93,7 +93,7 @@ exports.adminEditUser = catchASyncError(async (req, res) => {
 
     return res.status(200).json({
         success: true,
-        messgae: 'Edit user success'
+        message: 'Edit user success'
     })
 });
 
