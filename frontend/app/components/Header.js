@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import HeaderLoggedIn from "./HeaderLoggedIn";
 import { Link as RouterLink } from 'react-router-dom';
+import { AuthProvider, useAuth } from "../assets/AuthContext";
 
 import {AppBar, Toolbar, Button, createTheme, ThemeProvider} from '@mui/material/';
+import Cookies from "js-cookie";
 
 
 function Header(props) {
-    const [loggedIn, setLoggedIn] = useState([]);
+    const { isLoggedIn } = useAuth();
+    const isAuthenticated = Cookies.get('token');
 
     const defaultTheme = createTheme();
 
@@ -25,8 +28,9 @@ function Header(props) {
               TMS
             </Button>
           </RouterLink>
-          <div style={{ flexGrow: 1 }}></div> {/* Spacer to push HeaderLoggedIn to the right */}
-          <HeaderLoggedIn />
+          {/* Spacer to push HeaderLoggedIn to the right */}
+          <div style={{ flexGrow: 1 }}></div> 
+          {isAuthenticated && <HeaderLoggedIn/> }
         </Toolbar>
       </AppBar>
       </ThemeProvider>

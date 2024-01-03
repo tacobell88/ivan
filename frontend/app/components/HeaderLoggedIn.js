@@ -1,16 +1,36 @@
 import React from "react";
 import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
+import Cookies from "js-cookie";
+import { useAuth } from "../assets/AuthContext";
+import axios from "axios";
 
 import MuiLink from '@mui/material/Link'; // Rename to avoid naming conflict
-import { AppBar, Toolbar, Typography, Button, createTheme, ThemeProvider } from '@mui/material/';
+import { Button, createTheme, ThemeProvider } from '@mui/material/';
 
 function HeaderLoggedIn() {
+    const { setIsLoggedIn } = useAuth();
+
+    const userRoles = Cookies.get('userRole') || '';
+    const isAdmin = userRoles.split(',').includes('admin');
+    console.log('Is Admin:', isAdmin); // Log admin check
+
     const defaultTheme = createTheme();
+
+    const handleLogout = async () => {
+      // Perform logout API call if necessary
+      Cookies.remove('token');
+      Cookies.remove('userRole');
+      Cookies.remove('user');
+      delete axios.defaults.headers.common['Authorization'];
+      setIsLoggedIn(false);
+      window.location.href = '/'; // Redirect to login page
+    };
 
     return (
         <ThemeProvider theme={defaultTheme}>
             <nav>
-                <MuiLink
+            {isAdmin && (
+              <MuiLink
                   component={RouterLink}
                   to="/user-management"
                   variant="button"
@@ -19,6 +39,7 @@ function HeaderLoggedIn() {
                 >
                  User Management
                 </MuiLink>
+            )}
                 <MuiLink
                   component={RouterLink}
                   to="/user-profile"
@@ -29,9 +50,7 @@ function HeaderLoggedIn() {
                   My Profile
                 </MuiLink>
             </nav>
-            <Button 
-              component={RouterLink} 
-              to="/logout" 
+            <Button
               variant="outlined" 
               sx={{ 
                 my: 1, 
@@ -42,7 +61,8 @@ function HeaderLoggedIn() {
                   backgroundColor: '#f5f5f5', // Light grey background on hover
                   color: 'black',
                 }
-              }}>
+              }}
+              onClick={handleLogout}>
                 Log Out
             </Button>
         </ThemeProvider>
@@ -50,48 +70,3 @@ function HeaderLoggedIn() {
 }
 
 export default HeaderLoggedIn
-
-
-{/*
-import React from "react";
-
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Link from '@mui/material/Link';
-import Button from '@mui/material/Button';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-function HeaderLoggedIn () {
-
-    const defaultTheme = createTheme();
-
-    return (
-        <ThemeProvider theme={defaultTheme}>
-        <nav>
-            <Link
-              variant="button"
-              color="text.primary"
-              href="#"
-              sx={{ my: 1, mx: 1.5 }}
-            >
-             User Management
-            </Link>
-            <Link
-              variant="button"
-              color="text.primary"
-              href="#"
-              sx={{ my: 1, mx: 1.5 }}
-            >
-              My Profile
-            </Link>
-        </nav>
-            <Button href="#" variant="outlined" sx={{ my: 1, mx: 1.5 }}>
-                Sign Out
-            </Button>
-        </ThemeProvider>
-    )
-}
-
-export default HeaderLoggedIn
-*/}

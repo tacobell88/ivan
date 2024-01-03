@@ -36,6 +36,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
 
     row[0].token = token;
     req.user = row[0];
+    req.user.userId = decoded.userId;
 
     next();
 });

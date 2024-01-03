@@ -17,7 +17,8 @@ const { isAuthenticated,
         isAuthRole } = require('../middlewares/authMidware');
 
 // routes relating to admin user
-router.route('/users/getUsers').get(isAuthenticated, isAuthRole("admin"),showAllUser);
+//router.route('/users/getUsers').get(isAuthenticated, isAuthRole("admin"),showAllUser);
+router.route('/users/getUsers').get(showAllUser);
 router.route('/users/createUser').post(isAuthenticated, isAuthRole("admin"), createUser);
 router.route('/users/editUser').post(adminEditUser);
 //isAuthenticated, isAuthRole("admin"),

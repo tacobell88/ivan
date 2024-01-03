@@ -1,34 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { TextField, Button, Paper, Typography, Box } from '@mui/material/';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 function UserProfile() {
-    // Simulated user data fetched from the API
-    const loggedInUserData = {
-        id: 1, 
-        username: 'test2', 
-        password: 'test', 
-        email: 'test', 
-        userGroup: 'dev,pl,admin', 
-        userStatus: 'active'
-    };
-
-    // State for user data and edit mode
-    const [userData, setUserData] = useState(loggedInUserData);
+    // Retrieve user data from cookies
+    const userDataFromCookies = JSON.parse(Cookies.get('user') || '{}');
+    const [userData, setUserData] = useState({
+        email: userDataFromCookies.email || '',
+        password: '',
+        username: userDataFromCookies.username || ''
+    });
     const [editMode, setEditMode] = useState(false);
-
-    useEffect(() => {
-        // Fetch user data from the API and update the state
-        // Example data fetching:
-        // setUserData(fetchedUserData);
-    }, []);
 
     const handleEdit = () => {
         setEditMode(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setEditMode(false);
-        // API call to update user data
+        try {
+            const updatedData = {
+                email: userData.email,
+                // If password is empty, don't include it in the payload
+                password: userData.password || null
+            };
+            await axios.post('http://localhost:8000/users/updateUser', updatedData);
+            // Optionally update user data in cookies
+            Cookies.set('user', JSON.stringify({...userDataFromCookies, email: userData.email}));
+            alert('User profile updated');
+        } catch (error) {
+            console.error('Error updating user profile:', error);
+            alert('Error updating profile: ' + (error.response?.data?.message || error.message));
+        } finally {
+            // Reset password field after save attempt (success or fail)
+            setUserData({ ...userData, password: '' });
+        }
     };
 
     const handleChange = (e) => {

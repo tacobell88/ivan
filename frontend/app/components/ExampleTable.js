@@ -1,198 +1,206 @@
-import React, { useState, useEffect } from "react";
-
-// importing neccessary components from MUI 
+import React, { useState, useEffect, useContext } from "react";
+import axios from 'axios';
 import {
-    TextField,
-    Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    OutlinedInput,
-    Chip,
-    Stack
+  TextField,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
+  Chip,
+  Stack
 } from '@mui/material/';
-
 import CancelIcon from "@mui/icons-material/Cancel";
-
-// Initial hardcoded data for the table
-const initialData = [
-    { id: 1, username: 'test', password: 'test', email: 'test', userGroup: 'dev,pl,admin', userStatus: 'active' },
-    { id: 2, username: 'test2', password: 'test2', email: 'test2', userGroup: 'dev,pl', userStatus: 'active' },
-    { id: 3, username: 'test3', password: 'test3', email: 'test3', userGroup: 'dev,pl,admin', userStatus: 'active' }
-];
-
-// Hardcoded data for user groups, simulating data that might come from an API
-const dummyGroupData = [
-    { "user_group": "admin" }, 
-    { "user_group": "dev" }, 
-    { "user_group": "pl" }, 
-    { "user_group": "pm" }
-];
+import { UserManagementContext } from "../assets/UserMgntContext";
 
 function ExampleTable() {
-    const [data, setData] = useState(initialData);
-    const [editIdx, setEditIdx] = useState(-1);
-    const [groups, setGroups] = useState([]); // State to store groups from the API
-    
+    const [data, setData] = useState([]);
+    const [editIdx, setEditIdx] = useState(null);
+    const [groups, setGroups] = useState([]);
+    const { refreshData } = useContext(UserManagementContext);
+  
     useEffect(() => {
-        // Simulating fetching data from API
-        const fetchedGroups = dummyGroupData.map(group => group.user_group);
-        setGroups(fetchedGroups);
+      const fetchUserData = async () => {
+        try {
+          const response = await axios.get('http://localhost:8000/users/getUsers');
+          setData(response.data.message.map(user => ({
+            ...user,
+            user_group: user.user_group || '',
+            editPassword: '' // Initialize editPassword for each user
+          })));
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+      fetchUserData();
+    }, [refreshData]);
+  
+    useEffect(() => {
+      const fetchGroupData = async () => {
+        try {
+          const groupResponse = await axios.get('http://localhost:8000/users/getAllRoles');
+          setGroups(groupResponse.data.message.map(group => group.user_group));
+        } catch (error) {
+          console.error('Error fetching group data:', error);
+        }
+      };
+      fetchGroupData();
     }, []);
-    
-     // Function to start editing a row
+  
     const startEdit = (id) => {
-        setEditIdx(id);
+      setEditIdx(id);
     };
-
-    // Function to stop editing a row (save changes)
+  
     const stopEdit = () => {
-        setEditIdx(-1);
+      setEditIdx(null);
     };
-    
-    // Function to handle changes in multi-select component (user groups)
-    const handleChangeMultiSelect = (id, value) => {
-        const newData = data.map((item) => {
-            if (item.id === id) {
-                // Join the array with a comma and no spaces
-                return { ...item, userGroup: value.join(',') };
-            }
-            return item;
-        });
-        setData(newData);
-    };
-
-    // Function to handle deleting a selected user group
-    const handleDelete = (id, valueToDelete, event) => {
-        // Prevent the default event handling by the Select component
-        event.stopPropagation();
-    
-        const newData = data.map((item) => {
-            if (item.id === id) {
-                const updatedUserGroups = item.userGroup.split(',').filter(group => group !== valueToDelete).join(',');
-                return { ...item, userGroup: updatedUserGroups };
-            }
-            return item;
-        });
-        setData(newData);
-    };
-
-    // General function to handle changes in text fields
+  
     const handleChange = (e, name, id) => {
-        const newData = data.map((item) => {
-            if (item.id === id) {
-                return { ...item, [name]: e.target.value };
-            }
-            return item;
-        });
-        setData(newData);
+      const newData = data.map((item) => {
+        if (item.username === id) {
+          return { ...item, [name]: e.target.value };
+        }
+        return item;
+      });
+      setData(newData);
     };
-
+  
+    const handleUserGroupChange = (value, id) => {
+      const newData = data.map((item) => {
+        if (item.username === id) {
+          return { ...item, user_group: value.join(',') };
+        }
+        return item;
+      });
+      setData(newData);
+    };
+  
+    const handleSave = async (id) => {
+      const userToEdit = data.find((user) => user.username === id);
+      if (userToEdit) {
+        try {
+          // Prepare data for API request
+          const updateData = {
+            ...userToEdit,
+            password: userToEdit.editPassword || null, // Send null if no new password
+          };
+          delete updateData.editPassword; // Remove the temporary property
+  
+          await axios.post('http://localhost:8000/users/editUser', updateData);
+          alert('User successfully updated');
+          stopEdit();
+          refreshData(); // Refresh the table data
+        } catch (error) {
+          alert('Failed to update user');
+          console.error('Error updating user:', error);
+        }
+      }
+    };
+  
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="caption table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell><b>Username</b></TableCell>
-                        <TableCell align="right"><b> Password </b></TableCell>
-                        <TableCell align="right"><b>Email</b></TableCell>
-                        <TableCell align="right"><b>User Group</b></TableCell>
-                        <TableCell align="right"><b>User Status</b></TableCell>
-                        <TableCell align="right"><b>Edit</b></TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                {/* Mapping over each row in the data to create table rows */}
-                    {data.map((row) => (
-                        <TableRow key={row.id}>
-                        {/* Mapping over each key in the row object to create table cells */}
-                            {Object.keys(row).map((key) => {
-                                if (key !== "id") {
-                                    return (
-                                        <TableCell key={key} align={key === 'username' ? 'left' : 'right'}>
-                                        {/* Conditional rendering for different cell types based on edit mode and cell content
-                                            and render logic for different cells */}
-                                            {editIdx === row.id && key === 'userStatus' ? (
-                                                <FormControl fullWidth>
-                                                    <Select
-                                                        value={row.userStatus}
-                                                        onChange={(e) => handleChange(e, key, row.id)}
-                                                        label="User Status"
-                                                    >
-                                                        <MenuItem value="active">Active</MenuItem>
-                                                        <MenuItem value="disabled">Disabled</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            ) : editIdx === row.id && key === 'userGroup' ? (
-                                                <FormControl fullWidth>
-                                                <Select
-                                                multiple
-                                                value={row.userGroup.split(',').filter(group => group)} // Filter out empty strings
-                                                onChange={(e) => handleChangeMultiSelect(row.id, e.target.value)}
-                                                input={<OutlinedInput />}
-                                                size="small"
-                                                renderValue={(selected) => {
-                                                    // Check if the selected array is empty and return null or an empty component
-                                                    if (selected.length === 0) {
-                                                        return null;
-                                                    }
-                                                    return (
-                                                        <Stack gap={1} direction="row" flexWrap="wrap">
-                                                            {selected.map((value) => (
-                                                                <Chip
-                                                                    key={value}
-                                                                    label={value}
-                                                                    onDelete={(event) => handleDelete(row.id, value, event)}
-                                                                    deleteIcon={<CancelIcon onMouseDown={(event) => event.stopPropagation()} />}
-                                                                />
-                                                            ))}
-                                                        </Stack>
-                                                    );
-                                                }}
-                                            >
-                                                {groups.map((group) => (
-                                                    <MenuItem key={group} value={group}>
-                                                        {group}
-                                                    </MenuItem>
-                                                ))}
-                                                </Select>
-                                                </FormControl>
-                                            ) : editIdx === row.id ? (
-                                                <TextField
-                                                    value={row[key]}
-                                                    onChange={(e) => handleChange(e, key, row.id)}
-                                                    size="small"
-                                                />
-                                            ) : (
-                                                row[key]
-                                            )}
-                                        </TableCell>
-                                    );
-                                }
-                                return null;
-                            })}
-                            {/* Cell for Edit/Save button */}
-                            <TableCell align="right">
-                                {editIdx === row.id ? (
-                                    <Button onClick={stopEdit} color="primary">Save</Button>
-                                ) : (
-                                    <Button onClick={() => startEdit(row.id)} color="primary">Edit</Button>
-                                )}
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell><b>Username</b></TableCell>
+              <TableCell align="right"><b>Password</b></TableCell>
+              <TableCell align="right"><b>Email</b></TableCell>
+              <TableCell align="right"><b>User Group</b></TableCell>
+              <TableCell align="right"><b>User Status</b></TableCell>
+              <TableCell align="right"><b>Edit</b></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row) => (
+              <TableRow key={row.username}>
+                <TableCell>
+                  <TextField
+                    value={row.username}
+                    disabled={true}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    placeholder="••••••••"
+                    type="password"
+                    disabled={editIdx !== row.username}
+                    value={editIdx === row.username ? row.editPassword : ''}
+                    onChange={(e) => handleChange(e, 'editPassword', row.username)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    value={editIdx === row.username ? row.email : row.email || ''}
+                    disabled={editIdx !== row.username}
+                    onChange={(e) => handleChange(e, 'email', row.username)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <FormControl fullWidth>
+                    <Select
+                      multiple
+                      value={editIdx === row.username ? row.user_group.split(',') : row.user_group.split(',')}
+                      onChange={(e) => handleUserGroupChange(e.target.value, row.username)}
+                      input={<OutlinedInput />}
+                      renderValue={(selected) => (
+                        <Stack direction="row" spacing={1}>
+                          {selected.map((value) => (
+                            <Chip
+                              key={value}
+                              label={value}
+                              onDelete={(event) => {
+                                event.stopPropagation();
+                                const newValues = row.user_group.split(',').filter(group => group !== value);
+                                handleUserGroupChange(newValues, row.username);
+                              }}
+                              deleteIcon={<CancelIcon onMouseDown={(event) => event.stopPropagation()} />}
+                            />
+                          ))}
+                        </Stack>
+                      )}
+                      disabled={editIdx !== row.username}
+                    >
+                      {groups.map((group) => (
+                        <MenuItem key={group} value={group}>
+                          {group}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell>
+                  <FormControl fullWidth>
+                    <Select
+                      value={editIdx === row.username ? row.user_status : row.user_status}
+                      onChange={(e) => handleChange(e, 'user_status', row.username)}
+                      disabled={editIdx !== row.username}
+                    >
+                      <MenuItem value="active">Active</MenuItem>
+                      <MenuItem value="disabled">Disabled</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell align="right">
+                  {editIdx === row.username ? (
+                    <Button onClick={() => handleSave(row.username)} color="primary">Save</Button>
+                  ) : (
+                    <Button onClick={() => startEdit(row.username)} color="primary">Edit</Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     );
-}
-
-export default ExampleTable
+  }
+  
+  export default ExampleTable;

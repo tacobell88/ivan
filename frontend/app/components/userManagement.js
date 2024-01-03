@@ -4,13 +4,17 @@ import ExampleTable from "./ExampleTable.js";
 import CreateGroup from "./CreateGroup.js";
 import CreateUser from "./CreateUser.js";
 
+import { UserManagementProvider } from "../assets/UserMgntContext.js";
+
 function UserManagement () {
     return (
-        <Page title="User Management">
-            <CreateGroup/>
-            <CreateUser/>
-            <ExampleTable />
-        </Page>
+        <UserManagementProvider>
+            <Page title="User Management">
+                <CreateGroup/>
+                <CreateUser/>
+                <ExampleTable />
+            </Page>
+        </UserManagementProvider>
     )
 }
 

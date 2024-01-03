@@ -1,9 +1,13 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { TextField, Button, Grid } from '@mui/material/';
+import { useContext } from "react";
+import { UserManagementContext } from "../assets/UserMgntContext";
 
 export default function CreateGroup() {
     const [groupName, setGroupName] = useState("");
+
+    const { refreshUserData } = useContext(UserManagementContext);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -11,7 +15,8 @@ export default function CreateGroup() {
             const response = await axios.post('http://localhost:8000/users/createRole', {
                 user_group: groupName
             });
-            alert('User added into database');
+            alert('Group successfully added into database');
+            refreshUserData((prev) => !prev)
         } catch (error) {
             alert('Invalid group');
             if (error.response) {
@@ -21,6 +26,8 @@ export default function CreateGroup() {
             } else if (error.message) {
                 console.log(error.message);
             }
+        } finally {
+            setGroupName({groupName : ''})
         }
     }
 

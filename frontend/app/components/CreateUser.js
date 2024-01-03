@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { TextField, Button, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Stack, Grid } from '@mui/material/';
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
+import { useContext } from "react";
+import { UserManagementContext } from "../assets/UserMgntContext";
 
 function CreateUser() {
     const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [] });
     const [groups, setGroups] = useState([]);
+
+    const { refreshUserData } = useContext(UserManagementContext);
 
     useEffect(() => {
         // API call to fetch user group data
@@ -21,7 +25,7 @@ function CreateUser() {
         };
     
         fetchGroups();
-    }, []);
+    }, [refreshUserData]);
 
     const handleChange = (e) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });

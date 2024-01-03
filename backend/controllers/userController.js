@@ -6,7 +6,7 @@ const catchASyncError = require('../middlewares/catchASyncError');
 // display all user function
 exports.showAllUser = catchASyncError(async (req, res, next) => {
     try {
-        const [rows, fields] = await db.execute(`SELECT * FROM accounts`);
+        const [rows, fields] = await db.execute(`SELECT username,email,user_group,user_status FROM accounts`);
         return res.status(200).json({
             success: true,
             message: rows
@@ -98,12 +98,18 @@ exports.adminEditUser = catchASyncError(async (req, res) => {
 });
 
 exports.editUserProfile = catchASyncError(async (req, res, next) => {
-    const userId = req.user['userId'];
+    console.log('req.user:', req.user);
+    const userId = req.user['userId']; // Ensure this matches the structure of req.user
+    console.log('UserID:', userId);
     var { password, email } = req.body;
 
     if (!email) {
         email = null;
     };
+
+    if (password === undefined) {
+        password = null; // Set password to null if it's undefined
+    }
 
     if (password) {
         if (!validatePassword(password)) {
@@ -113,17 +119,22 @@ exports.editUserProfile = catchASyncError(async (req, res, next) => {
             })
         }
         password = await bcrypt.hash(password, 10);
-    } else {
-        password = null;
     }
-
+    console.log('Email:', email, 'Password:', password, 'UserID:', userId);
     const sql = `UPDATE accounts SET email = ?, password = COALESCE(?,password) WHERE username = ?;`
-    const [row, fields] = await db.execute(sql, [email, password, userId]);
-
-    return res.status(200).json({
-        success: true,
-        messgae: 'User profile updated'
-    })
+    try {
+        const [row, fields] = await db.execute(sql, [email, password, userId]);
+        return res.status(200).json({
+            success: true,
+            message: 'User profile updated'
+        });
+    } catch (error) {
+        console.error('Database error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
 });
 
 function validatePassword (str) {

@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie';
+import { AuthProvider } from './assets/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
+import PublicRoute from './routes/PublicRoute';
+import AdminRoute from './routes/AdminRoute';
 
 //importing built components to use
 import Header from './components/Header'
@@ -14,21 +18,28 @@ import ExampleTable from './components/ExampleTable'
 import UserProfile from './components/UserProfile';
 
 
+
 function Component () {
-  const [isLoggedIn, setIsLoggedIn] = useState([]);
+    useEffect(() => {
+        const token = Cookies.get('token');
+        if (token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+    }, []);
 
     return (
-        <BrowserRouter>
-            <Header />
-            <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/user-management" element={<UserManagement />} />
-                <Route path="/user-profile" element={<UserProfile/>} />
-                {/* <Route path="/user-profile" element={<UserProfile />} /> */}
-                
-            </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+            <BrowserRouter>
+                <Header />
+                <Routes>
+                <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+                <Route path="/home" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+                <Route path="/user-management" element={<AdminRoute><UserManagement /></AdminRoute>} />
+                <Route path="/user-profile" element={<ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+        
         
     )
 }
