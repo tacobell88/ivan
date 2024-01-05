@@ -20,11 +20,31 @@ import UserProfile from './components/UserProfile';
 
 
 function Component () {
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+    const userRoles = Cookies.get('userRole') || '';
+    const isAdmin = userRoles.split(',').includes('admin');
+    console.log('Is Admin:', isAdmin); // Log admin check
+
     useEffect(() => {
-        const token = Cookies.get('token');
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const tokenValue = Cookies.get('token');
+        async function verifyToken () {
+            if (tokenValue) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`;
+                const response = await axios.post('http://localhost:8000/verifyToken', {})
+                console.log(response);
+                setIsLoggedIn(true);
+                if (response.data.success) {
+                    console.log(response)
+                } else {
+                    // kick the user out
+                    alert('Invalid Token');
+                    
+                }
+            } 
+            
         }
+        verifyToken();
     }, []);
 
     return (
@@ -33,9 +53,10 @@ function Component () {
                 <Header />
                 <Routes>
                 <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
-                <Route path="/home" element={<ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-                <Route path="/user-management" element={<AdminRoute><UserManagement /></AdminRoute>} />
-                <Route path="/user-profile" element={<ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+                <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+                {/* TO WORK ON DOING A 404 PAGE */}
+                {isAdmin && <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />}
+                <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>

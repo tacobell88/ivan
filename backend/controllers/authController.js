@@ -63,23 +63,44 @@ exports.userLogout = catchASyncError(async (req, res) => {
     })
 });
 
-exports.checkGroup = catchASyncError(async (userId, GroupName) => {
-    //get user data from database
-    const [row, fields] = await db.execute(`SELECT user_group FROM accounts WHERE username= ?;`, [userId]);
+exports.validToken = catchASyncError(async(req, res) => {
+    // let token;
+    // console.log('this is req.headers info: ',req.headers.authorization);
+    // // if token is valid then assign it to token variable declared above
+    // if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    //     token = req.headers.authorization.split(' ')[1];
+    // }
+    
+    // // if token does not exist return error
+    // if(!token) {
+    //     // return next(new ErrorHandler('Login first to access this resource.', 401));
+    //     return res.status(401).json({
+    //         success: false,
+    //         message: 'Login first to use this resource'
+    //     })
+    // }
 
-    if (row.length == 0) {
-        return false;
-    }
+    // // check if token is valid
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // console.log(decoded);
 
-    //get current user groups
-    const user_group = row[0]["user_group"].split(",");
-    //get intersection of user group and allowed group to see if user is authorized
-    const authorizedGroup = GroupName.filter((value) => user_group.includes(value));
+    // // finding user in database that matches token id
+    // const [row, data] = await db.execute(`SELECT * FROM accounts where username = ?`, [decoded.userId]);
 
-    //if len>0 means user is authorized
-    if (authorizedGroup.length > 0) {
-        return true;
-    }
+    // if (row.length == 0) {
+    //     return res.status(400).json({
+    //         success: false,
+    //         message: 'Invalid JWT Token'
+    //     })
+    // }
 
-    return false;
+    // row[0].token = token;
+    // req.user = row[0];
+    // req.user.userId = decoded.userId;
+
+    // next();
+    return res.status(200).json({
+        success:true,
+        message: req.user
+    })
 })

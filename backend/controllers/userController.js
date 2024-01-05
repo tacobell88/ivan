@@ -6,7 +6,7 @@ const catchASyncError = require('../middlewares/catchASyncError');
 // display all user function
 exports.showAllUser = catchASyncError(async (req, res, next) => {
     try {
-        const [rows, fields] = await db.execute(`SELECT username,email,user_group,user_status FROM accounts`);
+        const [rows, fields] = await db.execute(`SELECT id,username,email,user_group,user_status FROM accounts`);
         return res.status(200).json({
             success: true,
             message: rows
@@ -25,7 +25,6 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 exports.createUser = catchASyncError(async (req, res, next) => {
     var { userId, password, email, user_group } = req.body
 
-    // ****** TO FIX USER_GROUP & EMAIL SHOW NULL IN DATABASE IF NO USER INPUT ****** (FIXED)
     // user group is optional if user does not select a user group, user group will be saved null
     if (!user_group) {
         user_group = null;
@@ -64,11 +63,27 @@ exports.createUser = catchASyncError(async (req, res, next) => {
 
 // admin edits user details
 exports.adminEditUser = catchASyncError(async (req, res) => {
+    console.log('req.user:', req.user);
     var { userId, password, email, user_group, user_status } = req.body;
+    console.log('User:', userId, 'Pw:', password, 'Email:',email, 'Groups:',user_group, 'Status:',user_status );
 
+    // email is optional so if email is not valid input, user email will be saved as null
+    if (!email) {
+        email = null;
+    };
+
+    if (password === undefined) {
+        password = null; // Set password to null if it's undefined
+    }
+
+    if (user_group === ' ') {
+        user_group = null;
+    }
+    console.log (`User group from admin editing function: ${user_group}`)
+ 
     if (password) {
         if (!validatePassword(password)) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid Password'
             })
@@ -77,15 +92,6 @@ exports.adminEditUser = catchASyncError(async (req, res) => {
     } else {
         password = null;
     }
-    
-    // email is optional so if email is not valid input, user email will be saved as null
-    if (!email) {
-        email = null;
-    };
-
-    if (!(user_status === 'active')) [
-        user_status = 'disabled'
-    ];
 
     //if password==null then use old password database value, if email==null then set null in database
     const sql = `UPDATE accounts SET email = ?, user_group = ?, user_status = ?,password = COALESCE(?,password) WHERE username = ?;`
@@ -99,7 +105,8 @@ exports.adminEditUser = catchASyncError(async (req, res) => {
 
 exports.editUserProfile = catchASyncError(async (req, res, next) => {
     console.log('req.user:', req.user);
-    const userId = req.user['userId']; // Ensure this matches the structure of req.user
+     // Ensure this matches the structure of req.user
+    const userId = req.user['userId'];
     console.log('UserID:', userId);
     var { password, email } = req.body;
 

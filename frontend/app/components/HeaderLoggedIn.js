@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect,useState } from "react";
 import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
 import Cookies from "js-cookie";
 import { useAuth } from "../assets/AuthContext";
@@ -9,10 +9,46 @@ import { Button, createTheme, ThemeProvider } from '@mui/material/';
 
 function HeaderLoggedIn() {
     const { setIsLoggedIn } = useAuth();
+    const [isAdmin, setIsAdmin] = useState(false);
 
-    const userRoles = Cookies.get('userRole') || '';
-    const isAdmin = userRoles.split(',').includes('admin');
-    console.log('Is Admin:', isAdmin); // Log admin check
+    // const userRoles = Cookies.get('userRole') || '';
+    // const isAdmin = userRoles.split(',').includes('admin');
+    // console.log('Is Admin:', isAdmin); // Log admin check
+
+    // TRYING TO USE CHECKGROUP INSTEAD (WORKING)
+    useEffect(()=> {
+      try {
+        axios.post('http://localhost:8000/checkGroup', {
+              user_group: 'admin'
+        }).then((response)=> {
+          setIsAdmin(true);
+          console.log('Header Logged In are u working: ', response)
+        }).catch( (error) => console.log(error) );
+      //   if (response) {
+      //     setIsAdmin(true);
+      //   }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },[{/* INCLUDE SOMETHING HEREONLY LET THIS USE EFFECT RUN AFTER USER IS LOGGED IN*/}]) 
+
+    // useEffect(() => {
+    //   const checkAdmin = async() => {
+    //     try {
+    //       const response = await axios.post('http://localhost:8000/checkGroup', {
+    //                 user_group: 'admin'
+    //               });
+    //       console.log('response from checkAdmin in headerLoggedIn', response)
+    //       if (response) {
+    //         setIsAdmin(true);
+    //       }
+    //     } catch (error) {
+    //       console.log('Error from headerLoggedIn: ', error.message);
+    //     }
+    //   }
+    //   checkAdmin();
+    // },[])
+      
 
     const defaultTheme = createTheme();
 

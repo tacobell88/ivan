@@ -11,7 +11,7 @@ export const UserManagementProvider = ({ children }) => {
     };
 
     return (
-        <UserManagementContext.Provider value={{ refreshUserData }}>
+        <UserManagementContext.Provider value={{ refreshUserData, refreshData }}>
             {children}
         </UserManagementContext.Provider>
     );

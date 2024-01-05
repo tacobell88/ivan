@@ -27,7 +27,7 @@ function UserProfile() {
             };
             await axios.post('http://localhost:8000/users/updateUser', updatedData);
             // Optionally update user data in cookies
-            Cookies.set('user', JSON.stringify({...userDataFromCookies, email: userData.email}));
+            // Cookies.set('user', JSON.stringify({...userDataFromCookies, email: userData.email}));
             alert('User profile updated');
         } catch (error) {
             console.error('Error updating user profile:', error);

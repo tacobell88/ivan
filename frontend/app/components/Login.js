@@ -30,6 +30,7 @@ function Login() {
               axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
               console.log('Logged in user roles:', response.data.user.user_group); // Log user roles
+              
               setIsLoggedIn(true); // Update login state
               window.location.href = '/home'; // Redirect to home
             } else {

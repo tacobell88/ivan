@@ -7,6 +7,7 @@ import CreateUser from "./CreateUser.js";
 import { UserManagementProvider } from "../assets/UserMgntContext.js";
 
 function UserManagement () {
+    // const [refresh, setRefresh] = useState()
     return (
         <UserManagementProvider>
             <Page title="User Management">
