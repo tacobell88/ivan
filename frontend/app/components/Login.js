@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Navigate } from "react";
+import { useNavigate } from "react-router-dom";
 import Page from "./Page";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -7,9 +8,12 @@ import { useAuth } from "../assets/AuthContext";
 import { Button, CssBaseline, TextField, Box, Container, createTheme, ThemeProvider } from '@mui/material/';
 
 function Login() {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { setIsLoggedIn } = useAuth();
+
+    const { isLoggedIn, setIsLoggedIn } = useAuth();
+    console.log({isLoggedIn, setIsLoggedIn});
 
     const defaultTheme = createTheme();
 
@@ -17,24 +21,26 @@ function Login() {
         e.preventDefault();
         console.log(username);
         console.log(password);
+
         try {
             const response = await axios.post('http://localhost:8000/login', {
                 userId: username,
                 password: password
             });
-
             if (response.data.success) {
               Cookies.set('token', response.data.token, { expires: 7 });
               Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
-              Cookies.set('userRole', response.data.user.user_group, { expires: 7 }); // Store user role
+              // Cookies.set('userRole', response.data.user.user_group, { expires: 7 }); // Store user role
               axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
               console.log('Logged in user roles:', response.data.user.user_group); // Log user roles
-              
+
               setIsLoggedIn(true); // Update login state
-              window.location.href = '/home'; // Redirect to home
-            } else {
-                alert('Login Failed');
+              navigate('/home'); // Redirect to home
+              // window.location.href = '/home';
+              // <Navigate to="/home" />
+            } else if (response.status === 401) {
+                alert('Please enter username/password');
             }
         } catch (error) {
             alert('Invalid login credentials');

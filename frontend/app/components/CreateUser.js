@@ -4,10 +4,12 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
 import { useContext } from "react";
 import { UserManagementContext } from "../assets/UserMgntContext";
+import { useAuth } from "../assets/AuthContext";
 
 function CreateUser() {
     const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [] });
     const [groups, setGroups] = useState([]);
+    const { IsLoggedIn, setIsLoggedIn } = useAuth();
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -23,8 +25,8 @@ function CreateUser() {
                 // Handle errors as appropriate
             }
         };
-    
         fetchGroups();
+
     }, [refreshUserData]);
 
     const handleChange = (e) => {

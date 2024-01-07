@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const catchASyncError = require('./catchASyncError');
 const db = require('../config/database');
-const {Checkgroup} = require('../controllers/groupController');
+const { Checkgroup } = require('../controllers/groupController');
+const ErrorHandler = require('../utils/errorHandler');
 
 exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     let token;
@@ -13,11 +14,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     
     // if token does not exist return error
     if(!token) {
-        // return next(new ErrorHandler('Login first to access this resource.', 401));
-        return res.status(401).json({
-            success: false,
-            message: 'Login first to use this resource'
-        })
+        return next(new ErrorHandler('Login first to access this resource.', 401));
     }
 
     var decoded = '';
@@ -56,17 +53,11 @@ exports.isAuthRole = (groups) => {
     return catchASyncError(async (req, res, next) => {
         console.log('isAuthRole username:', req.user.username, 'Groups:', groups)
         const auth = await Checkgroup(req.user.username, groups);
-        console.log('isAuthRole response: ',auth);
+        console.log('isAuthRole response: ', auth);
         if (!auth) {
-            return res.status(400).json({
-                success: false,
-                message: 'User not allowed to view this resource'
-            })
+            return next(new ErrorHandler('User not allowed to view this resource', 400))
         } else {
-            // return res.status(200).json({
-            //     success: true,
-            //     messsage: 'User is authorised'
-            // })
+            // return next is so that the next function can be carried out eg. .get(isAuthRole('admin'), getUsers)
             return next();
         }
     })

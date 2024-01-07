@@ -2,14 +2,16 @@ const db = require('../config/database');
 const catchASyncError = require('../middlewares/catchASyncError');
 const bcrypt = require('bcryptjs');
 const jwt = require ('jsonwebtoken');
+const ErrorHandler = require('../utils/errorHandler');
 
 // user login functionality
-exports.userLogin = catchASyncError(async (req, res) => {
+exports.userLogin = catchASyncError(async (req, res, next) => {
     const { userId, password } = req.body; 
 
     //if username or password is not entered
     if (!userId || !password) {
-        return res.status(400).send('Please enter username/password');
+        // return res.status(401).send('Please enter username/password');
+        return next(new ErrorHandler('Please enter username/password', 400));
     };
 
     //checking if username exist in database
@@ -17,23 +19,19 @@ exports.userLogin = catchASyncError(async (req, res) => {
 
     //if username does not exist in the database there will be no result
     if (row.length == 0) {
-        return res.status(400).send('Invalid Login Credentials');
+        return next(new ErrorHandler('Invalid credentials', 401));
     };
 
     //check if password matches entered password
     const isPassMatch = await bcrypt.compare(password, row[0].password);
     if (!isPassMatch) {
-        return res.status(401).send('Invalid Password');
-        // return res.status(401).json({
-        //     success : false,
-        //     message : row[0].user_status
-        // })
+        return next(new ErrorHandler('Invalid credentials', 401));
     };
 
     //checking if user status is active or disabled
     //if disabled don't allow login
     if (row[0].user_status === 'disabled') {
-        return res.status(401).send('Account is disabled');
+        return next(new ErrorHandler('Account is disabled', 401));
     };
 
     //creating jwt token

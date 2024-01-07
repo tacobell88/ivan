@@ -8,8 +8,8 @@ import Cookies from "js-cookie";
 
 
 function Header(props) {
-    const { isLoggedIn } = useAuth();
-    const isAuthenticated = Cookies.get('token');
+    const { isLoggedIn, } = useAuth();
+    // const isAuthenticated = Cookies.get('token');
 
     const defaultTheme = createTheme();
 
@@ -30,7 +30,7 @@ function Header(props) {
           </RouterLink>
           {/* Spacer to push HeaderLoggedIn to the right */}
           <div style={{ flexGrow: 1 }}></div> 
-          {isAuthenticated && <HeaderLoggedIn/> }
+          {isLoggedIn && <HeaderLoggedIn/> }
         </Toolbar>
       </AppBar>
       </ThemeProvider>

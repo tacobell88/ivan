@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
-import { Routes, Route, BrowserRouter } from 'react-router-dom'
+import { Routes, Route, BrowserRouter, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie';
-import { AuthProvider } from './assets/AuthContext';
+import { AuthContext, AuthProvider, useAuth } from './assets/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import AdminRoute from './routes/AdminRoute';
+// import StateContext from './assets/StateContext';
 
 //importing built components to use
 import Header from './components/Header'
@@ -16,30 +17,38 @@ import UserManagement from './components/UserManagement'
 import HomePage from './components/HomePage'
 import ExampleTable from './components/ExampleTable'
 import UserProfile from './components/UserProfile';
+import { UserManagementProvider } from './assets/UserMgntContext';
 
 
 
 function Component () {
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-    const userRoles = Cookies.get('userRole') || '';
-    const isAdmin = userRoles.split(',').includes('admin');
-    console.log('Is Admin:', isAdmin); // Log admin check
+    const [isAdmin, setIsAdmin] = useState(false);
+    const { isLoggedIn, setIsLoggedIn } = useAuth();
 
     useEffect(() => {
+        console.log('Executing useEffect to verify token');
         const tokenValue = Cookies.get('token');
+        
         async function verifyToken () {
             if (tokenValue) {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${tokenValue}`;
-                const response = await axios.post('http://localhost:8000/verifyToken', {})
-                console.log(response);
-                setIsLoggedIn(true);
-                if (response.data.success) {
-                    console.log(response)
-                } else {
-                    // kick the user out
-                    alert('Invalid Token');
-                    
+                try {
+                    const response = await axios.post('http://localhost:8000/verifyToken', {})
+                    console.log('Verify Token response: ', response.data.message);
+                    if (response.data.success) {
+                        console.log('Token verification success: ', response.data.success)
+                        setIsLoggedIn(true);
+                    } else {
+                        // implement a function to throw the the user out if token is invalid
+                        alert('Invalid Token');
+                        Cookies.remove('token');
+                        axios.defaults.headers.common["Authorization"] = "";
+                        Cookies.remove('userRole');
+                        Cookies.remove('user');
+                        setIsLoggedIn(false);
+                    }
+                } catch (error) {
+                    console.log('Verify Token Error: ', error.message)   
                 }
             } 
             
@@ -48,30 +57,31 @@ function Component () {
     }, []);
 
     return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Header />
-                <Routes>
-                <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
-                <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-                {/* TO WORK ON DOING A 404 PAGE */}
-                {isAdmin && <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />}
-                <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-        
-        
+        <BrowserRouter>
+            <Header />
+            <Routes>
+            <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+            <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+            {/* TO WORK ON DOING A 404 PAGE */}
+            // {/* {isAdmin && <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />} */}
+            <Route path = '/user-management' element={<UserManagement /> } />
+            <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 
 const root = ReactDOM.createRoot(document.querySelector("#app"))
-root.render(<Component/>)
-
+root.render( 
+        <AuthProvider>
+            <UserManagementProvider>
+                <Component />
+            </UserManagementProvider>
+        </AuthProvider>   
+)
 if (module.hot) {
     module.hot.accept()
 }
-
 // import React, { useState, useEffect } from "react";
 // import ReactDOM from "react-dom/client";
 // import { BrowserRouter, Routes, Route } from "react-router-dom";

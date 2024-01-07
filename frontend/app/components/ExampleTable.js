@@ -3,28 +3,50 @@ import axios from 'axios';
 import { TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, FormControl, Select, MenuItem, OutlinedInput, Chip, Stack } from '@mui/material/';
 import CancelIcon from "@mui/icons-material/Cancel";
 import { UserManagementContext } from "../assets/UserMgntContext";
+import { useAuth } from "../assets/AuthContext";
 
 function ExampleTable() {
   const [data, setData] = useState([]);
   const [editIdx, setEditIdx] = useState(null);
   const [groups, setGroups] = useState([]);
   const { refreshData, setRefreshData } = useContext(UserManagementContext);
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkAdmin = async() => {
+      try {
+        const response = await axios.post('http://localhost:8000/checkGroup', {
+                  user_group: 'admin'
+                });
+        console.log('response from checkAdmin in ExampleTable;', response)
+        if (response) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.log('Error from ExampleTable: ', error.message);
+      }
+    }
+    checkAdmin();
+  },[setIsLoggedIn])
 
   useEffect(() => {
-      const fetchUserData = async () => {
-          try {
-              const response = await axios.get('http://localhost:8000/users/getUsers');
-              setData(response.data.message.map(user => ({
-                  ...user,
-                  user_group: user.user_group || '',
-                  password: '' // Initialize password for each user
-              })));
-          } catch (error) {
-              console.error('Error fetching user data:', error);
-          }
+    const fetchUserData = async () => {
+        try {
+          const response = await axios.get('http://localhost:8000/users/getUsers');
+          console.log('This is fetched users data: ',response.data.message)
+          setData(response.data.message.map(user => ({
+            ...user,
+            // If user_group is null, initialize as an empty string
+            user_group: user.user_group || '',
+            password: '' // Initialize password for each user
+          })));
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
       };
       fetchUserData();
-  }, [refreshData]);
+  }, [refreshData, setIsAdmin]);
 
   useEffect(() => {
       const fetchGroupData = async () => {
@@ -36,7 +58,7 @@ function ExampleTable() {
           }
       };
       fetchGroupData();
-  }, [refreshData]);
+  }, [refreshData, setIsAdmin]);
 
   const startEdit = (id) => {
       setEditIdx(id);
@@ -47,44 +69,52 @@ function ExampleTable() {
   };
 
   const handleChange = (e, name, id) => {
-      const newData = data.map((item) => {
-          if (item.id === id) {
-              return { ...item, [name]: e.target.value };
-          }
-          return item;
+    const newData = data.map((item) => {
+        if (item.id === id) {
+          // Replace null or undefined with an empty string
+          const newValue = e.target.value !== null ? e.target.value : '';
+          return { ...item, [name]: newValue };
+        }
+        return item;
       });
+      // console.log('handleChange new data: ',newData)
       setData(newData);
   };
 
+  //test out new handleusergroup for persisting blank space
   const handleUserGroupChange = (value, id) => {
-      const newData = data.map((item) => {
-          if (item.id === id) {
-              return { ...item, user_group: value.join(',') };
-              
-          }
-          console.log(item);
-          return item;
-      });
-      setData(newData);
-  };
+
+    const userGroupArray = Array.isArray(value) ? value : [];
+    const newData = data.map((item) => {
+      if (item.id === id) {
+        return { ...item, user_group: userGroupArray.join(',') };
+      }
+      return item;
+    });
+    // console.log(newData);
+    setData(newData);
+};
 
   const handleSave = async (id) => {
       const userToEdit = data.find((user) => user.id === id);
-      console.log(userToEdit);
+      console.log('This is user to edit: ',userToEdit);
       if (userToEdit) {
           try {
               const updateData = {
-                  userId: userToEdit.username, // Changed to userId
-                  email: userToEdit.email,
-                  user_group: userToEdit.user_group,
-                  user_status: userToEdit.user_status,
-                  password: userToEdit.password || null
+                id: userToEdit.id,
+                userId: userToEdit.username, // Changed to userId
+                email: userToEdit.email,
+                user_group: userToEdit.user_group,
+                user_status: userToEdit.user_status,
+                password: userToEdit.password || null
               };
               console.log(updateData);
-              await axios.post('http://localhost:8000/users/editUser', updateData);
-              alert('User successfully updated');
-              stopEdit();
-              setRefreshData(!refreshData); // Trigger refresh
+              const response = await axios.post('http://localhost:8000/users/editUser', updateData);
+              if (response.data.success) {
+                alert('User successfully updated');
+                stopEdit();
+                //setRefreshData((prev) => !prev); // Trigger refresh
+              }
           } catch (error) {
               alert('Failed to update user');
               console.error('Error updating user:', error);
@@ -126,7 +156,7 @@ function ExampleTable() {
                             </TableCell>
                             <TableCell>
                                 <TextField
-                                    value={editIdx === row.id ? row.email : row.email || ''}
+                                    value={editIdx === row.id ? (row.email !== null ? row.email : '') : (row.email !== null ? row.email : '')}
                                     disabled={editIdx !== row.id}
                                     onChange={(e) => handleChange(e, 'email', row.id)}
                                 />
@@ -134,33 +164,31 @@ function ExampleTable() {
                             <TableCell>
                                 <FormControl size="small" fullWidth>
                                     <Select
-                                        multiple
-                                        value={editIdx === row.id ? row.user_group.split(',') : row.user_group.split(',')}
-                                        onChange={(e) => handleUserGroupChange(e.target.value, row.id)}
-                                        input={<OutlinedInput />}
-                                        renderValue={(selected) => (
-                                            <Stack direction="row" spacing={1}>
-                                                {selected.map((value) => (
-                                                    <Chip
-                                                        key={value}
-                                                        label={value}
-                                                        onDelete={editIdx === row.id ? (event) => {
-                                                            event.stopPropagation();
-                                                            const newValues = row.user_group.split(',').filter(group => group !== value);
-                                                            handleUserGroupChange(newValues, row.id);
-                                                        } : undefined}
-                                                        deleteIcon={editIdx === row.id ? <CancelIcon onMouseDown={(event) => event.stopPropagation()} /> : undefined}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        )}
-                                        disabled={editIdx !== row.id}
-                                    >
-                                        {groups.map((group) => (
-                                            <MenuItem key={group} value={group}>
-                                                {group}
-                                            </MenuItem>
+                                    multiple
+                                    value={editIdx === row.id ? (row.user_group ? row.user_group.split(',') : []) : (row.user_group ? row.user_group.split(',') : [])}
+                                    onChange={(e) => handleUserGroupChange(e.target.value, row.id)}
+                                    input={<OutlinedInput />}
+                                    renderValue={(selected) => (
+                                        <Stack direction="row" spacing={1}>
+                                        {selected.map((value) => (
+                                            <Chip
+                                            key={value}
+                                            label={value}
+                                            onDelete={editIdx === row.id ? (event) => {
+                                                event.stopPropagation();
+                                                const newValues = row.user_group.split(',').filter(group => group !== value);
+                                                handleUserGroupChange(newValues, row.id);
+                                            } : undefined}
+                                            deleteIcon={editIdx === row.id ? <CancelIcon onMouseDown={(event) => event.stopPropagation()} /> : undefined}
+                                            />
                                         ))}
+                                        </Stack>
+                                    )}
+                                    disabled={editIdx !== row.id}
+                                    >
+                                    {groups.map((group) => (
+                                        <MenuItem key={group} value={group}>{group}</MenuItem>
+                                    ))}
                                     </Select>
                                 </FormControl>
                             </TableCell>

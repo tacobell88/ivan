@@ -1,17 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TextField, Button, Paper, Typography, Box } from '@mui/material/';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useNavigate } from "react-router-dom";
 
 function UserProfile() {
     // Retrieve user data from cookies
-    const userDataFromCookies = JSON.parse(Cookies.get('user') || '{}');
-    const [userData, setUserData] = useState({
-        email: userDataFromCookies.email || '',
-        password: '',
-        username: userDataFromCookies.username || ''
-    });
     const [editMode, setEditMode] = useState(false);
+    // ******* FIND A WAY TO GET USERNAME WITHOUT STORING IT IN COOKIES
+    useEffect(()=> {
+        async function getUser() {
+            try {
+                console.log('Running user profile useEffect to get user data')
+                const response = await axios.get('http://localhost:8000/getUser')
+            } catch (error) {
+                console.log('Unable to find user');
+            }
+        }
+        getUser();
+    }, [])
+
+    // const userDataFromCookies = JSON.parse(Cookies.get('user') || '{}');
+    // const [userData, setUserData] = useState({
+    //     email: userDataFromCookies.email || '',
+    //     password: '',
+    //     username: userDataFromCookies.username || ''
+    // });
+
+    
 
     const handleEdit = () => {
         setEditMode(true);
