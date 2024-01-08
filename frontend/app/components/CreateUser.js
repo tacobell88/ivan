@@ -5,6 +5,7 @@ import axios from "axios";
 import { useContext } from "react";
 import { UserManagementContext } from "../assets/UserMgntContext";
 import { useAuth } from "../assets/AuthContext";
+import GlobalContext from "../assets/GlobalContext";
 
 function CreateUser() {
     const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [], userStatus: '' });
@@ -12,6 +13,7 @@ function CreateUser() {
     // const [ errMessage, setErrMessage ] = useState('');
     const { IsLoggedIn, setIsLoggedIn } = useAuth();
     const ref = useRef(null);
+    const { handleAlerts } = useContext(GlobalContext);
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -65,19 +67,19 @@ function CreateUser() {
         try {
             const response = await axios.post('http://localhost:8000/users/createUser', submitData);
             console.log('User creation response:', response.data);
-            alert('User has been created');
+            handleAlerts('User has been created', true);
             refreshUserData();
             setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: '' }); // Reset form fields
         } catch (error) {
             console.log('Error creating user:', error);
             if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
-                alert("Password needs to be 8-10char and contains alphanumeric and special character")
+                handleAlerts("Password needs to be 8-10char and contains alphanumeric and special character", false)
             } else if (error.response.data.errMessage = "Username or password is required") {
-                alert("Username or password is required")
+                handleAlerts("Username or password is required", false)
             } else if (error.response.data.errMessage = "User status is required") {
-                alert("User status is required")
+                handleAlerts("User status is required", false)
             } else if ( error.response.data.errMessage == "Username/password required") {
-                alert("Username/password required");
+                handleAlerts("Username/password required", false);
             }
             setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: ''}); // Reset form fields
         }

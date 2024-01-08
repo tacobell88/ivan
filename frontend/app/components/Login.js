@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Navigate } from "react";
+import React, { useEffect, useState, Navigate, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Page from "./Page";
 import axios from "axios";
@@ -7,12 +7,14 @@ import { useAuth } from "../assets/AuthContext";
 import { ToastContainer, toast } from 'react-toastify';
 
 import { Button, CssBaseline, TextField, Box, Container, createTheme, ThemeProvider } from '@mui/material/';
+import GlobalContext from "../assets/GlobalContext";
 
 function Login() {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const { isLoggedIn, setIsLoggedIn } = useAuth();
+    const { handleAlerts } = useContext(GlobalContext);
     console.log({isLoggedIn, setIsLoggedIn});
 
     const defaultTheme = createTheme();
@@ -34,18 +36,25 @@ function Login() {
               axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
               console.log('Logged in user roles:', response.data.user.user_group); // Log user roles
-
+              handleAlerts('Log in successfully', true)
               setIsLoggedIn(true); // Update login state
               navigate('/home'); // Redirect to home
-            } else if (response.status === 401) {
-                toast('Please enter username/password');
-            }
+            } 
         } catch (error) {
-            if (error.response.data.errMessage === "Account is disabled") {
-                alert("Account is disabled")
+            if (error.response.data.errMessage === "Invalid credentials") {
+            //   alert('Invalid credentials')
+                handleAlerts('Invalid credentials', false)
+            } else if (error.response.data.errMessage == "Please enter username/password") {
+              handleAlerts('Invalid credentials', 'false')
+            } else if (error.response.data.errMessage === "Account is disabled") {
+              handleAlerts("Account is disabled", false)
             }
-            console.log('Login error:', error);
-        }
+            //else if (error.response.data.errMessage == "Please enter username/password") {
+                //toast.error('Please enter username/password', {
+                    //position: toast.POSITION.TOP_RIGHT
+                    console.log('Login error:', error);
+          }
+          
     }
 
     return (

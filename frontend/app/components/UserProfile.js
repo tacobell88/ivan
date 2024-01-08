@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { TextField, Button, Paper, Typography, Box } from '@mui/material/';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useNavigate } from "react-router-dom";
+import GlobalContext from "../assets/GlobalContext";
 
 function UserProfile() {
     // Retrieve user data from cookies
@@ -12,6 +13,7 @@ function UserProfile() {
         password: '',
         username: ''
     });
+    const {handleAlerts} = useContext(GlobalContext);
 
     // ******* FIND A WAY TO GET USERNAME WITHOUT STORING IT IN COOKIES
     useEffect(()=> {
@@ -59,10 +61,10 @@ function UserProfile() {
                 password: userData.password || null
             };
             await axios.post('http://localhost:8000/users/updateUser', updatedData);
-            alert('User profile updated');
+            handleAlerts('User profile updated', true);
         } catch (error) {
             console.log('Error updating user profile:', error.response.data.errMessage);
-            alert(error.response.data.errMessage);
+            handleAlerts(error.response.data.errMessage, false);
         } finally {
             // Reset password field after save attempt (success or fail)
             setUserData({ ...userData, password: '' });

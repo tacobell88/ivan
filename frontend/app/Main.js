@@ -8,6 +8,8 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import AdminRoute from './routes/AdminRoute';
 
+import { ToastContainer, toast } from 'react-toastify';
+
 // import StateContext from './assets/StateContext';
 
 //importing built components to use
@@ -19,6 +21,7 @@ import HomePage from './components/HomePage'
 import ExampleTable from './components/ExampleTable'
 import UserProfile from './components/UserProfile';
 import { UserManagementProvider } from './assets/UserMgntContext';
+import GlobalContext from "./assets/GlobalContext";
 
 
 
@@ -26,6 +29,13 @@ function Component () {
     const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, setIsLoggedIn } = useAuth();
     // const navigate = useNavigate();
+    const handleAlerts = (msg, success) => {
+        if (success) {
+          toast.success(msg);
+        } else {
+          toast.error(msg);
+        }
+      };
 
     useEffect(() => {
         console.log('Executing useEffect to verify token');
@@ -44,7 +54,7 @@ function Component () {
                         // implement a function to throw the the user out if token is invalid
                         Cookies.remove('token');
                         axios.defaults.headers.common["Authorization"] = "";
-                        alert('Invalid Token');
+                        handleAlerts('Invalid Token', false);
                         setIsLoggedIn(false);
                         // navigate('/');
                     }
@@ -53,7 +63,7 @@ function Component () {
                     if (error.response.data.errMessage === "User is disabled") {
                         Cookies.remove('token');
                         axios.defaults.headers.common["Authorization"] = "";
-                        alert('User is disabled');
+                        handleAlerts('User is disabled', false);
                     }
                     
                     setIsLoggedIn(false);
@@ -66,6 +76,7 @@ function Component () {
     }, []);
 
     return (
+        <GlobalContext.Provider value={{handleAlerts}}>
         <BrowserRouter>
             <Header />
             <Routes>
@@ -78,15 +89,18 @@ function Component () {
             <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
+        </GlobalContext.Provider>
+        
     )
 }
 
 const root = ReactDOM.createRoot(document.querySelector("#app"))
 root.render( 
         <AuthProvider>
-            <UserManagementProvider>
-                <Component />
-            </UserManagementProvider>
+                <UserManagementProvider>
+                    <Component />
+                </UserManagementProvider>
+                <ToastContainer autoClose={1000} />  
         </AuthProvider>   
 )
 if (module.hot) {

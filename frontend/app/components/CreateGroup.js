@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { TextField, Button, Grid } from '@mui/material/';
 import { useContext } from "react";
 import { UserManagementContext } from "../assets/UserMgntContext";
+import GlobalContext from "../assets/GlobalContext";
 
 export default function CreateGroup() {
     const [groupName, setGroupName] = useState("");
     // const [error, setError ] = useState("");
+    const { handleAlerts } = useContext(GlobalContext);
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -17,7 +19,7 @@ export default function CreateGroup() {
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(groupName)) {
             // setError("Group name must be a single word either alpha/alphanumberic")
-            alert('Group name must be a single word either alpha/alphanumberic');
+            handleAlerts('Group name must be a single word either alpha/alphanumberic', false);
             setGroupName('');
             return;
         }
@@ -26,10 +28,10 @@ export default function CreateGroup() {
             const response = await axios.post('http://localhost:8000/users/createRole', {
                 user_group: groupName
             });
-            alert('Group successfully added into database');
+            handleAlerts('Group successfully added into database', true);
             refreshUserData()
         } catch (error) {
-            alert('Invalid group');
+            handleAlerts('Invalid group', false);
             if (error.response) {
                 console.log(error.response.data);
             } else if (error.request) {

@@ -6,6 +6,7 @@ import { UserManagementContext } from "../assets/UserMgntContext";
 import { useAuth } from "../assets/AuthContext";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import GlobalContext from "../assets/GlobalContext";
 
 function ExampleTable() {
   const [data, setData] = useState([]);
@@ -15,6 +16,7 @@ function ExampleTable() {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const {handleAlerts} = useContext(GlobalContext);
   
   useEffect(() => {
     const checkAdmin = async() => {
@@ -117,23 +119,23 @@ function ExampleTable() {
               console.log('This is the updated data: ',updateData);
               const response = await axios.post('http://localhost:8000/users/editUser', updateData);
               if (response.data.success) {
-                alert('User successfully updated');
+                handleAlerts('User successfully updated', true);
                 stopEdit();
                 //setRefreshData((prev) => !prev); // Trigger refresh
               }
           } catch (error) {
                 console.log(error.response.data.errMessage);
                 if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
-                    alert("Password needs to be 8-10char and contains alphanumeric and special character")
+                    handleAlerts("Password needs to be 8-10char and contains alphanumeric and special character", false)
                 };
                 if (error.response.data.errMessage == `Duplicate entry '${userToEdit.username}' for key 'accounts.PRIMARY'`) {
-                    alert("Username already exists")
+                    handleAlerts("Username already exists", false)
                 }
                 if (error.response.data.errMessage == "User not allowed to view this resource") {
                     Cookies.remove('token');
                     delete axios.defaults.headers.common['Authorization'];
                     setIsLoggedIn(false);
-                    alert("User is not an admin");
+                    handleAlerts("User is not an admin", false);
                     navigate('/');
                 };
                 console.log('Error updating user:', error);
