@@ -6,17 +6,28 @@ import { UserManagementContext } from "../assets/UserMgntContext";
 
 export default function CreateGroup() {
     const [groupName, setGroupName] = useState("");
+    const [error, setError ] = useState("");
 
     const { refreshUserData } = useContext(UserManagementContext);
 
     async function handleSubmit(e) {
         e.preventDefault();
+
+        // user group validation
+        const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
+        if (!validPattern.test(groupName)) {
+            setError("Group name must be a single word either alpha/alphanumberic")
+            alert('Group name must be a single word either alpha/alphanumberic');
+            setGroupName('');
+            return;
+        }
+
         try {
             const response = await axios.post('http://localhost:8000/users/createRole', {
                 user_group: groupName
             });
             alert('Group successfully added into database');
-            refreshUserData((prev) => !prev)
+            refreshUserData()
         } catch (error) {
             alert('Invalid group');
             if (error.response) {
@@ -27,7 +38,7 @@ export default function CreateGroup() {
                 console.log(error.message);
             }
         } finally {
-            setGroupName({groupName : ''})
+            setGroupName('');
         }
     }
 
@@ -43,6 +54,7 @@ export default function CreateGroup() {
                             placeholder="Enter a group"
                             autoComplete="off"
                             size = "small"
+                            value = {groupName}
                             style={{ width: 150 }}
                             onChange={e => setGroupName(e.target.value)}
                         />

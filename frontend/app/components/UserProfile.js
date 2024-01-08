@@ -7,18 +7,35 @@ import { useNavigate } from "react-router-dom";
 function UserProfile() {
     // Retrieve user data from cookies
     const [editMode, setEditMode] = useState(false);
+    const [userData, setUserData] = useState({
+        email: '',
+        password: '',
+        username: ''
+    });
+
     // ******* FIND A WAY TO GET USERNAME WITHOUT STORING IT IN COOKIES
     useEffect(()=> {
         async function getUser() {
             try {
                 console.log('Running user profile useEffect to get user data')
-                const response = await axios.get('http://localhost:8000/getUser')
+                const response = await axios.get('http://localhost:8000/users/userProfile', {})
+                console.log('response from getUsers in UserProfile: ',response);
+                if (response.data.success) {
+                    setUserData({
+                        email : response.data.results.email,
+                        password : '',
+                        username : response.data.results.username
+                    })
+                }
             } catch (error) {
+                console.log(error)
                 console.log('Unable to find user');
             }
         }
         getUser();
     }, [])
+
+    console.log('This is user data from user profile page: ',userData);
 
     // const userDataFromCookies = JSON.parse(Cookies.get('user') || '{}');
     // const [userData, setUserData] = useState({
@@ -42,8 +59,6 @@ function UserProfile() {
                 password: userData.password || null
             };
             await axios.post('http://localhost:8000/users/updateUser', updatedData);
-            // Optionally update user data in cookies
-            // Cookies.set('user', JSON.stringify({...userDataFromCookies, email: userData.email}));
             alert('User profile updated');
         } catch (error) {
             console.error('Error updating user profile:', error);

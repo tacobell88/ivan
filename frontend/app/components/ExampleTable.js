@@ -4,14 +4,17 @@ import { TextField, Button, Table, TableBody, TableCell, TableContainer, TableHe
 import CancelIcon from "@mui/icons-material/Cancel";
 import { UserManagementContext } from "../assets/UserMgntContext";
 import { useAuth } from "../assets/AuthContext";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 function ExampleTable() {
   const [data, setData] = useState([]);
   const [editIdx, setEditIdx] = useState(null);
   const [groups, setGroups] = useState([]);
-  const { refreshData, setRefreshData } = useContext(UserManagementContext);
+  const { refreshData, setRefreshData , refreshUserData} = useContext(UserManagementContext);
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const checkAdmin = async() => {
@@ -19,10 +22,10 @@ function ExampleTable() {
         const response = await axios.post('http://localhost:8000/checkGroup', {
                   user_group: 'admin'
                 });
-        console.log('response from checkAdmin in ExampleTable;', response)
+        console.log('Response from checkAdmin in ExampleTable: ', response)
         if (response) {
           setIsAdmin(true);
-        }
+        } 
       } catch (error) {
         console.log('Error from ExampleTable: ', error.message);
       }
@@ -46,7 +49,7 @@ function ExampleTable() {
         }
       };
       fetchUserData();
-  }, [refreshData, setIsAdmin]);
+  }, [refreshUserData, refreshData]);
 
   useEffect(() => {
       const fetchGroupData = async () => {
@@ -58,7 +61,7 @@ function ExampleTable() {
           }
       };
       fetchGroupData();
-  }, [refreshData, setIsAdmin]);
+  }, [refreshUserData, refreshData]);
 
   const startEdit = (id) => {
       setEditIdx(id);
@@ -97,7 +100,7 @@ function ExampleTable() {
 
   const handleSave = async (id) => {
       const userToEdit = data.find((user) => user.id === id);
-      console.log('This is user to edit: ',userToEdit);
+      console.log('This is user to edit: ', userToEdit);
       if (userToEdit) {
           try {
               const updateData = {
@@ -108,7 +111,7 @@ function ExampleTable() {
                 user_status: userToEdit.user_status,
                 password: userToEdit.password || null
               };
-              console.log(updateData);
+              console.log('This is the updated data: ',updateData);
               const response = await axios.post('http://localhost:8000/users/editUser', updateData);
               if (response.data.success) {
                 alert('User successfully updated');
@@ -116,8 +119,15 @@ function ExampleTable() {
                 //setRefreshData((prev) => !prev); // Trigger refresh
               }
           } catch (error) {
-              alert('Failed to update user');
-              console.error('Error updating user:', error);
+                console.log(error.response.data.success);
+                if (error.response.data.success === false) {
+                    Cookies.remove('token');
+                    delete axios.defaults.headers.common['Authorization'];
+                    setIsLoggedIn(false);
+                    navigate('/');
+                };
+                alert('Failed to update user');
+                console.log('Error updating user:', error);
           }
       }
   };

@@ -21,7 +21,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     // check if token is valid
     try {
         decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded);
+        console.log('This is the response after being decoded: ', decoded);
     } catch (error) {
         return res.status(200).json({
             success: false,

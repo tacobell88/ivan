@@ -51,8 +51,6 @@ function HeaderLoggedIn() {
     const handleLogout = async () => {
       // Perform logout API call if necessary
       Cookies.remove('token');
-      Cookies.remove('userRole');
-      Cookies.remove('user');
       delete axios.defaults.headers.common['Authorization'];
       setIsLoggedIn(false);
       window.location.href = '/'; // Redirect to login page

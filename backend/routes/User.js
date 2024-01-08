@@ -28,7 +28,7 @@ router.route('/users/editUser').post(isAuthenticated, isAuthRole("admin"), admin
 // router.route('/users/editUser').post(adminEditUser);
 
 // implement /users/getProfile
-router.route('/users/userProfile').get(getUser);
+router.route('/users/userProfile').get(isAuthenticated, getUser);
 
 //isAuthenticated, isAuthRole("admin"),
 // routes relating to admin & normal user

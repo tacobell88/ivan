@@ -11,6 +11,18 @@ function Login() {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    // const [userInfo, setUserInfo ] = useState({
+    //   username : "",
+    //   email : "",
+    //   password : ""
+    // })
+
+    // const [userData, setUserData] = useState({
+    //   email: userDataFromCookies.email || '',
+    //   password: '',
+    //   username: userDataFromCookies.username || ''
+    // });
+    
 
     const { isLoggedIn, setIsLoggedIn } = useAuth();
     console.log({isLoggedIn, setIsLoggedIn});
@@ -28,17 +40,15 @@ function Login() {
                 password: password
             });
             if (response.data.success) {
+              console.log('Testing login page response: ', response.data.user)
               Cookies.set('token', response.data.token, { expires: 7 });
-              Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
-              // Cookies.set('userRole', response.data.user.user_group, { expires: 7 }); // Store user role
+              //Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
               axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
               console.log('Logged in user roles:', response.data.user.user_group); // Log user roles
 
               setIsLoggedIn(true); // Update login state
               navigate('/home'); // Redirect to home
-              // window.location.href = '/home';
-              // <Navigate to="/home" />
             } else if (response.status === 401) {
                 alert('Please enter username/password');
             }

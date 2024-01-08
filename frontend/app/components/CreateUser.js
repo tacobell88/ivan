@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Stack, Grid } from '@mui/material/';
+import React, { useState, useEffect, useRef } from "react";
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Stack, Grid, setRef } from '@mui/material/';
 import CancelIcon from "@mui/icons-material/Cancel";
 import axios from "axios";
 import { useContext } from "react";
@@ -7,9 +7,10 @@ import { UserManagementContext } from "../assets/UserMgntContext";
 import { useAuth } from "../assets/AuthContext";
 
 function CreateUser() {
-    const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [] });
+    const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [], userStatus: '' });
     const [groups, setGroups] = useState([]);
     const { IsLoggedIn, setIsLoggedIn } = useAuth();
+    const ref = useRef(null);
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -20,6 +21,7 @@ function CreateUser() {
                 const response = await axios.get('http://localhost:8000/users/getAllRoles');
                 const groupData = response.data.message.map(group => group.user_group);
                 setGroups(groupData);
+                
             } catch (error) {
                 console.error('Error fetching group data:', error);
                 // Handle errors as appropriate
@@ -44,19 +46,31 @@ function CreateUser() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         // Aligning the data structure with backend expectations
+        const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
+        if (!validPattern.test(userData.username)) {
+            setError("Group name must be a single word either alpha/alphanumberic")
+            alert('Group name must be a single word either alpha/alphanumberic');
+            setGroupName('');
+            return;
+        }
+
         const submitData = {
             userId: userData.username,  // Assuming 'username' in frontend corresponds to 'userId' in backend
             password: userData.password,
             email: userData.email,
-            user_group: userData.userGroups.join(',') // Join userGroups with a comma
+            user_group: userData.userGroups.join(','), // Join userGroups with a comma
+            user_status : userData.userStatus // status of the user can be set to active or disabled
         };
         try {
             const response = await axios.post('http://localhost:8000/users/createUser', submitData);
             console.log('User creation response:', response.data);
-            // Handle response and reset form or give feedback to user
+            alert('User has been created');
+            refreshUserData();
+            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: '' }); // Reset form fields
         } catch (error) {
             console.error('Error creating user:', error);
-            // Handle error response
+            alert('Error creating user');
+            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: ''}); // Reset form fields
         }
     };
 
@@ -70,6 +84,7 @@ function CreateUser() {
                             label="Username"
                             variant="outlined"
                             size="small"
+                            value={userData.username}
                             onChange={handleChange}
                             style={{ width: 150 }} // Set specific width
                         />
@@ -81,6 +96,7 @@ function CreateUser() {
                             variant="outlined"
                             type="password"
                             size="small"
+                            value={userData.password}
                             onChange={handleChange}
                             style={{ width: 150 }} // Set specific width
                         />
@@ -92,6 +108,7 @@ function CreateUser() {
                             variant="outlined"
                             type="email"
                             size="small"
+                            value={userData.email}
                             onChange={handleChange}
                             style={{ width: 150 }} // Set specific width
                         />
@@ -125,8 +142,19 @@ function CreateUser() {
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl>
+                        </FormControl>    
                     </Grid>
+                    <Grid item>
+                    <FormControl size="small" fullWidth>
+                        <Select
+                        value={userData.user_status}
+                        onChange={handleChange}
+                        >
+                            <MenuItem value="active">Active</MenuItem>
+                            <MenuItem value="disabled">Disabled</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
                     <Grid item>
                         <Button 
                             type="submit" 

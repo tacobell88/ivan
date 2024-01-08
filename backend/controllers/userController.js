@@ -28,7 +28,7 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 
 // create a new user function
 exports.createUser = catchASyncError(async (req, res, next) => {
-    var { userId, password, email, user_group } = req.body
+    var { userId, password, email, user_group, user_status } = req.body
 
     // user group is optional if user does not select a user group, user group will be saved null
     if (!user_group) {
@@ -49,8 +49,6 @@ exports.createUser = catchASyncError(async (req, res, next) => {
     if (!validatePassword(password)) {
         return next(new ErrorHandler("Password needs to be 8-10char and contains alphanumeric and special character", 400));
     };
-    //status is always active for new user creation
-    var user_status = 'active'; 
     
     //hashing password on new user creation
     const hashPassword = await bcrypt.hash(password, 10);
@@ -146,11 +144,11 @@ exports.editUserProfile = catchASyncError(async (req, res, next) => {
     }
 });
 
-exports.getUser = catchASyncError(async(req, res, next) => {
+exports.getUser = catchASyncError(async(req, res) => {
     // const userId = req.user['userId'];
     // const username = req.user.username;
-    console.log(req.body);
-    const { username } = req.body
+    console.log('getUser {req.user.username} info:', req.user.username);
+    const username = req.user.username
 
     console.log(username);
     sql = "SELECT id,username,email,user_group,user_status FROM accounts WHERE username = ?";

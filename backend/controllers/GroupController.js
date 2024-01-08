@@ -69,8 +69,8 @@ exports.Checkgroup = catchASyncError(async (userId, GroupName) => {
 exports.CheckingGroup = catchASyncError (async (req, res, next) => {
     const username = req.user.username;
     const group = req.body.user_group;
-    console.log(`(checkinggroup) Username to be checked: ${username}`);
-    console.log(`(checkinggroup) User is in groups: : ${group}`);
+    console.log(`(checkinggroup) User to be checked: ${username}`);
+    console.log(`(checkinggroup) User groups to be checked: : ${group}`);
 
     const result = await this.Checkgroup(username, group)
     console.log(`This is the result from executing checking group API: `, result)

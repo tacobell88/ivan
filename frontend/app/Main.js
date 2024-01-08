@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
-import { Routes, Route, BrowserRouter, useNavigate } from 'react-router-dom'
+import { Routes, Route, BrowserRouter, useNavigate, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie';
 import { AuthContext, AuthProvider, useAuth } from './assets/AuthContext';
@@ -24,6 +24,7 @@ import { UserManagementProvider } from './assets/UserMgntContext';
 function Component () {
     const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, setIsLoggedIn } = useAuth();
+    // const navigate = useNavigate();
 
     useEffect(() => {
         console.log('Executing useEffect to verify token');
@@ -40,15 +41,19 @@ function Component () {
                         setIsLoggedIn(true);
                     } else {
                         // implement a function to throw the the user out if token is invalid
-                        alert('Invalid Token');
                         Cookies.remove('token');
                         axios.defaults.headers.common["Authorization"] = "";
-                        Cookies.remove('userRole');
-                        Cookies.remove('user');
+                        alert('Invalid Token');
                         setIsLoggedIn(false);
+                        // navigate('/');
                     }
                 } catch (error) {
-                    console.log('Verify Token Error: ', error.message)   
+                    console.log('Verify Token Error: ', error.message)
+                    Cookies.remove('token');
+                    axios.defaults.headers.common["Authorization"] = "";
+                    Cookies.remove('user');
+                    alert('Invalid Token');
+                    setIsLoggedIn(false);
                 }
             } 
             
