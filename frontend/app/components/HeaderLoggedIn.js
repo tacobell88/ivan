@@ -1,5 +1,5 @@
 import React, { useEffect,useState } from "react";
-import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
+import { Link as RouterLink, useNavigate } from 'react-router-dom'; // Import RouterLink
 import Cookies from "js-cookie";
 import { useAuth } from "../assets/AuthContext";
 import axios from "axios";
@@ -10,7 +10,7 @@ import { Button, createTheme, ThemeProvider } from '@mui/material/';
 function HeaderLoggedIn() {
     const { IsLoggedIn, setIsLoggedIn } = useAuth();
     const [isAdmin, setIsAdmin] = useState(false);
-
+    const navigate = useNavigate();
     // TRYING TO USE CHECKGROUP INSTEAD (WORKING)
     // useEffect(()=> {
     //   try {
@@ -39,7 +39,11 @@ function HeaderLoggedIn() {
             setIsAdmin(true);
           }
         } catch (error) {
-          console.log('Error from headerLoggedIn: ', error.message);
+          if (error.response.data.message == "Checking group failed") {
+            alert("User is not an admin");
+            navigate('/');
+          }
+          console.log('Error from headerLoggedIn: ', error.response.data.errMessage);
         }
       }
       checkAdmin();
@@ -53,7 +57,7 @@ function HeaderLoggedIn() {
       Cookies.remove('token');
       delete axios.defaults.headers.common['Authorization'];
       setIsLoggedIn(false);
-      window.location.href = '/'; // Redirect to login page
+      navigate("/"); // Redirect to login page
     };
 
     return (

@@ -61,8 +61,8 @@ function UserProfile() {
             await axios.post('http://localhost:8000/users/updateUser', updatedData);
             alert('User profile updated');
         } catch (error) {
-            console.error('Error updating user profile:', error);
-            alert('Error updating profile: ' + (error.response?.data?.message || error.message));
+            console.log('Error updating user profile:', error.response.data.errMessage);
+            alert(error.response.data.errMessage);
         } finally {
             // Reset password field after save attempt (success or fail)
             setUserData({ ...userData, password: '' });

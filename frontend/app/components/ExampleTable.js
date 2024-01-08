@@ -27,7 +27,10 @@ function ExampleTable() {
           setIsAdmin(true);
         } 
       } catch (error) {
-        console.log('Error from ExampleTable: ', error.message);
+        if(error.response.data.errMessage === "Checking group failed") {
+            navigate("/");
+        }
+        console.log('Error from ExampleTable: ', error.response.data.errMessage);
       }
     }
     checkAdmin();
@@ -119,14 +122,20 @@ function ExampleTable() {
                 //setRefreshData((prev) => !prev); // Trigger refresh
               }
           } catch (error) {
-                console.log(error.response.data.success);
-                if (error.response.data.success === false) {
+                console.log(error.response.data.errMessage);
+                if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
+                    alert("Password needs to be 8-10char and contains alphanumeric and special character")
+                };
+                if (error.response.data.errMessage == `Duplicate entry '${userToEdit.username}' for key 'accounts.PRIMARY'`) {
+                    alert("Username already exists")
+                }
+                if (error.response.data.errMessage == "User not allowed to view this resource") {
                     Cookies.remove('token');
                     delete axios.defaults.headers.common['Authorization'];
                     setIsLoggedIn(false);
+                    alert("User is not an admin");
                     navigate('/');
                 };
-                alert('Failed to update user');
                 console.log('Error updating user:', error);
           }
       }

@@ -6,7 +6,7 @@ import { UserManagementContext } from "../assets/UserMgntContext";
 
 export default function CreateGroup() {
     const [groupName, setGroupName] = useState("");
-    const [error, setError ] = useState("");
+    // const [error, setError ] = useState("");
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -16,7 +16,7 @@ export default function CreateGroup() {
         // user group validation
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(groupName)) {
-            setError("Group name must be a single word either alpha/alphanumberic")
+            // setError("Group name must be a single word either alpha/alphanumberic")
             alert('Group name must be a single word either alpha/alphanumberic');
             setGroupName('');
             return;

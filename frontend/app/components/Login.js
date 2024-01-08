@@ -4,6 +4,7 @@ import Page from "./Page";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useAuth } from "../assets/AuthContext";
+import { ToastContainer, toast } from 'react-toastify';
 
 import { Button, CssBaseline, TextField, Box, Container, createTheme, ThemeProvider } from '@mui/material/';
 
@@ -11,19 +12,6 @@ function Login() {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    // const [userInfo, setUserInfo ] = useState({
-    //   username : "",
-    //   email : "",
-    //   password : ""
-    // })
-
-    // const [userData, setUserData] = useState({
-    //   email: userDataFromCookies.email || '',
-    //   password: '',
-    //   username: userDataFromCookies.username || ''
-    // });
-    
-
     const { isLoggedIn, setIsLoggedIn } = useAuth();
     console.log({isLoggedIn, setIsLoggedIn});
 
@@ -50,11 +38,13 @@ function Login() {
               setIsLoggedIn(true); // Update login state
               navigate('/home'); // Redirect to home
             } else if (response.status === 401) {
-                alert('Please enter username/password');
+                toast('Please enter username/password');
             }
         } catch (error) {
-            alert('Invalid login credentials');
-            console.error('Login error:', error);
+            if (error.response.data.errMessage === "Account is disabled") {
+                alert("Account is disabled")
+            }
+            console.log('Login error:', error);
         }
     }
 

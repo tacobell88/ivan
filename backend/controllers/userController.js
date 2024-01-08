@@ -30,25 +30,30 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 exports.createUser = catchASyncError(async (req, res, next) => {
     var { userId, password, email, user_group, user_status } = req.body
 
+    // if username and/or password has no input
+    if (!userId || !password) {
+        return next(new ErrorHandler('Username/password required', 400));
+    };
+    
+    // if username is valid input password will be checked
+    if (!validatePassword(password)) {
+        return next(new ErrorHandler("Password needs to be 8-10char and contains alphanumeric and special character", 400));
+    };
+
+    if (!email) {
+        email = null;
+    };
+
     // user group is optional if user does not select a user group, user group will be saved null
     if (!user_group) {
         user_group = null;
     };
 
     // email is optional so if email is not valid input, user email will be saved as null
-    if (!email) {
-        email = null;
-    };
 
-    // if username and/or password is not valid
-    if (!userId || !password) {
-        return next(new ErrorHandler('Username/password required', 400));
-    };
-
-    // if username is valid input password will be checked
-    if (!validatePassword(password)) {
-        return next(new ErrorHandler("Password needs to be 8-10char and contains alphanumeric and special character", 400));
-    };
+    if (!user_status || user_status == '') {
+        return next(new ErrorHandler('User status is required', 400))
+    }    
     
     //hashing password on new user creation
     const hashPassword = await bcrypt.hash(password, 10);
@@ -64,7 +69,7 @@ exports.createUser = catchASyncError(async (req, res, next) => {
 });
 
 // admin edits user details
-exports.adminEditUser = catchASyncError(async (req, res) => {
+exports.adminEditUser = catchASyncError(async (req, res, next) => {
     console.log('req.user:', req.user);
     var { id, userId, password, email, user_group, user_status } = req.body;
     console.log('** This will show the user that is being edited ***')
@@ -120,10 +125,7 @@ exports.editUserProfile = catchASyncError(async (req, res, next) => {
 
     if (password) {
         if (!validatePassword(password)) {
-            res.status(400).json({
-                success: false,
-                message: 'Invalid Password'
-            })
+            throw next(new ErrorHandler('Invalid Password', 400))
         }
         password = await bcrypt.hash(password, 10);
     }
@@ -137,10 +139,7 @@ exports.editUserProfile = catchASyncError(async (req, res, next) => {
         });
     } catch (error) {
         console.error('Database error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
+        throw next(new ErrorHandler('Database error', 500))
     }
 });
 

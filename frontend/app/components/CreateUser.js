@@ -9,6 +9,7 @@ import { useAuth } from "../assets/AuthContext";
 function CreateUser() {
     const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [], userStatus: '' });
     const [groups, setGroups] = useState([]);
+    // const [ errMessage, setErrMessage ] = useState('');
     const { IsLoggedIn, setIsLoggedIn } = useAuth();
     const ref = useRef(null);
 
@@ -48,9 +49,8 @@ function CreateUser() {
         // Aligning the data structure with backend expectations
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(userData.username)) {
-            setError("Group name must be a single word either alpha/alphanumberic")
-            alert('Group name must be a single word either alpha/alphanumberic');
-            setGroupName('');
+            // setError("Group name must be a single word either alpha/alphanumberic")
+            alert('Username can only contain alpha/alphanumeric characters with no spaces');
             return;
         }
 
@@ -61,6 +61,7 @@ function CreateUser() {
             user_group: userData.userGroups.join(','), // Join userGroups with a comma
             user_status : userData.userStatus // status of the user can be set to active or disabled
         };
+        console.log(submitData);
         try {
             const response = await axios.post('http://localhost:8000/users/createUser', submitData);
             console.log('User creation response:', response.data);
@@ -68,8 +69,16 @@ function CreateUser() {
             refreshUserData();
             setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: '' }); // Reset form fields
         } catch (error) {
-            console.error('Error creating user:', error);
-            alert('Error creating user');
+            console.log('Error creating user:', error);
+            if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
+                alert("Password needs to be 8-10char and contains alphanumeric and special character")
+            } else if (error.response.data.errMessage = "Username or password is required") {
+                alert("Username or password is required")
+            } else if (error.response.data.errMessage = "User status is required") {
+                alert("User status is required")
+            } else if ( error.response.data.errMessage == "Username/password required") {
+                alert("Username/password required");
+            }
             setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: ''}); // Reset form fields
         }
     };

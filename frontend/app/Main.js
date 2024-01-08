@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
-import { Routes, Route, BrowserRouter, useNavigate, Navigate } from 'react-router-dom'
+import { Routes, Route, BrowserRouter, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Cookies from 'js-cookie';
 import { AuthContext, AuthProvider, useAuth } from './assets/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import AdminRoute from './routes/AdminRoute';
+
 // import StateContext from './assets/StateContext';
 
 //importing built components to use
@@ -48,12 +49,15 @@ function Component () {
                         // navigate('/');
                     }
                 } catch (error) {
-                    console.log('Verify Token Error: ', error.message)
-                    Cookies.remove('token');
-                    axios.defaults.headers.common["Authorization"] = "";
-                    Cookies.remove('user');
-                    alert('Invalid Token');
+                    console.log('Verify Token Error: ', error)
+                    if (error.response.data.errMessage === "User is disabled") {
+                        Cookies.remove('token');
+                        axios.defaults.headers.common["Authorization"] = "";
+                        alert('User is disabled');
+                    }
+                    
                     setIsLoggedIn(false);
+                    window.location.href = '/';
                 }
             } 
             
@@ -66,10 +70,11 @@ function Component () {
             <Header />
             <Routes>
             <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+            <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
             <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
             {/* TO WORK ON DOING A 404 PAGE */}
-            // {/* {isAdmin && <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />} */}
-            <Route path = '/user-management' element={<UserManagement /> } />
+            <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
+            {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
             <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
