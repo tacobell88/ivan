@@ -8,9 +8,8 @@ import { useAuth } from "../assets/AuthContext";
 import GlobalContext from "../assets/GlobalContext";
 
 function CreateUser() {
-    const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [], userStatus: '' });
+    const [userData, setUserData] = useState({ username: '', password: '', email: '', userGroups: [], userStatus: 'active' });
     const [groups, setGroups] = useState([]);
-    // const [ errMessage, setErrMessage ] = useState('');
     const { IsLoggedIn, setIsLoggedIn } = useAuth();
     const ref = useRef(null);
     const { handleAlerts } = useContext(GlobalContext);
@@ -74,14 +73,17 @@ function CreateUser() {
             console.log('Error creating user:', error);
             if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
                 handleAlerts("Password needs to be 8-10char and contains alphanumeric and special character", false)
-            } else if (error.response.data.errMessage = "Username or password is required") {
+            } else if (error.response.data.error.message == `Duplicate entry '${userData.username}' for key 'accounts.PRIMARY'`) {
+                handleAlerts(`${userData.username} already exists`, false)
+            }else if (error.response.data.errMessage == "Username or password is required") {
                 handleAlerts("Username or password is required", false)
-            } else if (error.response.data.errMessage = "User status is required") {
+                console.log(error.response.data.message)
+            } else if (error.response.data.errMessage == "User status is required") {
                 handleAlerts("User status is required", false)
             } else if ( error.response.data.errMessage == "Username/password required") {
                 handleAlerts("Username/password required", false);
             }
-            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: ''}); // Reset form fields
+            // setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: ''}); // Reset form fields
         }
     };
 
@@ -158,7 +160,9 @@ function CreateUser() {
                     <Grid item>
                     <FormControl size="small" fullWidth>
                         <Select
-                        value={userData.user_status}
+                        name="userStatus"
+
+                        value={userData.userStatus}
                         onChange={handleChange}
                         >
                             <MenuItem value="active">Active</MenuItem>

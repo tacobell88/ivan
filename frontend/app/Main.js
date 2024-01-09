@@ -77,18 +77,17 @@ function Component () {
 
     return (
         <GlobalContext.Provider value={{handleAlerts}}>
-        <BrowserRouter>
-            <Header />
-            <Routes>
-            <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
-            <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
-            <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-            {/* TO WORK ON DOING A 404 PAGE */}
-            <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
-            {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
-            <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
-            </Routes>
-        </BrowserRouter>
+            <BrowserRouter>
+                {isLoggedIn ? <Header /> : <div> </div> }
+                <Routes>
+                <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+                <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+                {/* TO WORK ON DOING A 404 PAGE */}
+                <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
+                {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
+                <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+                </Routes>
+            </BrowserRouter>
         </GlobalContext.Provider>
         
     )
@@ -100,7 +99,7 @@ root.render(
                 <UserManagementProvider>
                     <Component />
                 </UserManagementProvider>
-                <ToastContainer autoClose={1000} />  
+                <ToastContainer autoClose={1000} />
         </AuthProvider>   
 )
 if (module.hot) {

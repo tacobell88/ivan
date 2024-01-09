@@ -30,7 +30,11 @@ function ExampleTable() {
         } 
       } catch (error) {
         if(error.response.data.errMessage === "Checking group failed") {
-            navigate("/");
+            Cookies.remove('token');
+            delete axios.defaults.headers.common['Authorization'];
+            setIsLoggedIn(false);
+            handleAlerts("User is not an admin", false);
+            navigate('/');
         }
         console.log('Error from ExampleTable: ', error.response.data.errMessage);
       }
@@ -62,8 +66,15 @@ function ExampleTable() {
               const groupResponse = await axios.get('http://localhost:8000/users/getAllRoles');
               setGroups(groupResponse.data.message.map(group => group.user_group));
           } catch (error) {
+            if (error.response.data.errMessage == "User not allowed to view this resource") {
+                Cookies.remove('token');
+                delete axios.defaults.headers.common['Authorization'];
+                setIsLoggedIn(false);
+                handleAlerts("User is not an admin", false);
+                navigate('/');
               console.error('Error fetching group data:', error);
           }
+        }
       };
       fetchGroupData();
   }, [refreshUserData, refreshData]);

@@ -4,11 +4,16 @@ import { TextField, Button, Grid } from '@mui/material/';
 import { useContext } from "react";
 import { UserManagementContext } from "../assets/UserMgntContext";
 import GlobalContext from "../assets/GlobalContext";
+import Cookies from "js-cookie";
+import { useAuth } from "../assets/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateGroup() {
     const [groupName, setGroupName] = useState("");
     // const [error, setError ] = useState("");
     const { handleAlerts } = useContext(GlobalContext);
+    const { setIsLoggedIn } = useAuth();
+    const navigate = useNavigate();
 
     const { refreshUserData } = useContext(UserManagementContext);
 
@@ -31,13 +36,15 @@ export default function CreateGroup() {
             handleAlerts('Group successfully added into database', true);
             refreshUserData()
         } catch (error) {
-            handleAlerts('Invalid group', false);
-            if (error.response) {
-                console.log(error.response.data);
-            } else if (error.request) {
-                console.log(error.request);
-            } else if (error.message) {
-                console.log(error.message);
+            console.log(error.response.data.errMessage)
+            if (error.response.data.errMessage == "User not allowed to view this resource") {
+                Cookies.remove('token');
+                delete axios.defaults.headers.common['Authorization'];
+                setIsLoggedIn(false);
+                handleAlerts("User is not an admin", false);
+                navigate('/');
+            } else if ( error.response.data.errMessage == `Duplicate entry '${groupName}' for key 'grouplist.PRIMARY'`) {
+                handleAlerts(`${groupName} already exists`, false);
             }
         } finally {
             setGroupName('');

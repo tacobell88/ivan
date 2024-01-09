@@ -45,7 +45,7 @@ function Login() {
             //   alert('Invalid credentials')
                 handleAlerts('Invalid credentials', false)
             } else if (error.response.data.errMessage == "Please enter username/password") {
-              handleAlerts('Invalid credentials', 'false')
+              handleAlerts('Invalid credentials', false)
             } else if (error.response.data.errMessage === "Account is disabled") {
               handleAlerts("Account is disabled", false)
             }

@@ -30,25 +30,6 @@ exports.getAllUserGroup = catchASyncError( async(req, res) => {
 });
 
 exports.Checkgroup = catchASyncError(async (userId, GroupName) => {
-    //get user data from database
-    // const [row, fields] = await db.execute(`SELECT user_group FROM accounts WHERE username= ?;`, [userId]);
-    // console.log(row);
-    // //get current user groups
-    // const group = row[0].user_group.split(",");
-    // console.log(group);
-    // //get intersection of user group and allowed group to see if user is authorized
-    // const authorizedGroup = group.filter((val) => val.includes(GroupName));
-    // console.log(authorizedGroup);
-
-    // //if len>0 means user is authorized
-    // if (authorizedGroup.length > 0) {
-    //     console.log(`User: ${userId} is part of ${authorizedGroup}`)
-    //     return true;
-    // } else {
-    //     console.log(`User: ${userId} is not part of ${authorizedGroup}`)
-    //     return false;
-    // }
-
     const [row, fields] = await db.execute(`SELECT user_group FROM accounts WHERE username= ?;`, [userId]);
     
     console.log('Checkgroup result for all user groups for user: ', row);
@@ -83,32 +64,4 @@ exports.CheckingGroup = catchASyncError (async (req, res, next) => {
     } else {
         return next(new ErrorHandler('Checking group failed', 400))
     }
-
-
-    // try {
-    //     const result = await this.Checkgroup(username, group)
-    //     console.log('hello r u there', result);
-    //     if (result) {
-    //         return res.status(200).json({
-    //             result: result,
-    //             success: true,
-    //             message: `User: ${username} Group: ${group}`
-    //         })
-            
-    //     } else {
-    //         console.log('checkgroup failed');
-    //         return res.status(400).json({
-    //             result: result,
-    //             success: false,
-    //             message: `User: ${username} Group: ${group}`
-    //         })
-    //     }
-    // } catch (error) {
-    //     res.status(400).json({
-    //         success: false,
-    //         message: error.message
-    //     })
-    //     console.log(error.message);
-    //     return
-    // }
 })

@@ -10,20 +10,6 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
         success: true,
         message: rows
     });
-    // try {
-        // const [rows, fields] = await db.execute(`SELECT id,username,email,user_group,user_status FROM accounts`);
-        // return res.status(200).json({
-        //     success: true,
-        //     message: rows
-        // });
-    // } catch (error) {
-    //     console.log(error);
-    //     return res.status(400).json({
-    //         success : false,
-    //         message : error
-    //     });
-    // }
-    // //res.status(200).send(rows);
 });
 
 // create a new user function
@@ -40,6 +26,7 @@ exports.createUser = catchASyncError(async (req, res, next) => {
         return next(new ErrorHandler("Password needs to be 8-10char and contains alphanumeric and special character", 400));
     };
 
+    // email is optional so if email is not valid input, user email will be saved as null
     if (!email) {
         email = null;
     };
@@ -49,10 +36,8 @@ exports.createUser = catchASyncError(async (req, res, next) => {
         user_group = null;
     };
 
-    // email is optional so if email is not valid input, user email will be saved as null
-
-    if (!user_status || user_status == '') {
-        return next(new ErrorHandler('User status is required', 400))
+    if (!user_status) {
+        return next(new ErrorHandler("User status is required", 401))
     }    
     
     //hashing password on new user creation
