@@ -19,7 +19,7 @@ export default function CreateGroup() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-
+        
         // user group validation
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(groupName)) {

@@ -36,7 +36,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     }
 
     if (row.length == 0) {
-            throw next(new ErrorHandler('User is not authenticated', 400))
+            throw next(new ErrorHandler('User is not authenticated', 401))
     }
 
     row[0].token = token;
