@@ -22,7 +22,7 @@ function ExampleTable() {
     const checkAdmin = async() => {
       try {
         const response = await axios.post('http://localhost:8000/checkGroup', {
-                  user_group: 'admin'
+                  groupname: 'admin'
                 });
         console.log('Response from checkAdmin in ExampleTable: ', response)
         if (response) {
@@ -49,8 +49,8 @@ function ExampleTable() {
           console.log('This is fetched users data: ',response.data.message)
           setData(response.data.message.map(user => ({
             ...user,
-            // If user_group is null, initialize as an empty string
-            user_group: user.user_group || '',
+            // If groupname is null, initialize as an empty string
+            groupname: user.groupname || '',
             password: '' // Initialize password for each user
           })));
         } catch (error) {
@@ -64,7 +64,7 @@ function ExampleTable() {
       const fetchGroupData = async () => {
           try {
               const groupResponse = await axios.get('http://localhost:8000/users/getAllRoles');
-              setGroups(groupResponse.data.message.map(group => group.user_group));
+              setGroups(groupResponse.data.message.map(group => group.groupname));
           } catch (error) {
             if (error.response.data.errMessage == "User not allowed to view this resource") {
                 Cookies.remove('token');
@@ -106,7 +106,7 @@ function ExampleTable() {
     const userGroupArray = Array.isArray(value) ? value : [];
     const newData = data.map((item) => {
       if (item.id === id) {
-        return { ...item, user_group: userGroupArray.join(',') };
+        return { ...item, groupname: userGroupArray.join(',') };
       }
       return item;
     });
@@ -123,8 +123,8 @@ function ExampleTable() {
                 id: userToEdit.id,
                 userId: userToEdit.username, // Changed to userId
                 email: userToEdit.email,
-                user_group: userToEdit.user_group,
-                user_status: userToEdit.user_status,
+                groupname: userToEdit.groupname,
+                isactive: userToEdit.isactive,
                 password: userToEdit.password || null
               };
               console.log('This is the updated data: ',updateData);
@@ -197,7 +197,7 @@ function ExampleTable() {
                                 <FormControl size="small" fullWidth>
                                     <Select
                                     multiple
-                                    value={editIdx === row.id ? (row.user_group ? row.user_group.split(',') : []) : (row.user_group ? row.user_group.split(',') : [])}
+                                    value={editIdx === row.id ? (row.groupname ? row.groupname.split(',') : []) : (row.groupname ? row.groupname.split(',') : [])}
                                     onChange={(e) => handleUserGroupChange(e.target.value, row.id)}
                                     input={<OutlinedInput />}
                                     renderValue={(selected) => (
@@ -208,7 +208,7 @@ function ExampleTable() {
                                             label={value}
                                             onDelete={editIdx === row.id ? (event) => {
                                                 event.stopPropagation();
-                                                const newValues = row.user_group.split(',').filter(group => group !== value);
+                                                const newValues = row.groupname.split(',').filter(group => group !== value);
                                                 handleUserGroupChange(newValues, row.id);
                                             } : undefined}
                                             deleteIcon={editIdx === row.id ? <CancelIcon onMouseDown={(event) => event.stopPropagation()} /> : undefined}
@@ -227,8 +227,8 @@ function ExampleTable() {
                             <TableCell>
                                 <FormControl fullWidth>
                                     <Select
-                                        value={editIdx === row.id ? row.user_status : row.user_status}
-                                        onChange={(e) => handleChange(e, 'user_status', row.id)}
+                                        value={editIdx === row.id ? row.isactive : row.isactive}
+                                        onChange={(e) => handleChange(e, 'isactive', row.id)}
                                         disabled={editIdx !== row.id}
                                     >
                                         <MenuItem value="active">Active</MenuItem>

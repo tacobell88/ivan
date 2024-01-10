@@ -5,7 +5,7 @@ const catchASyncError = require('../middlewares/catchASyncError');
 
 // display all user function
 exports.showAllUser = catchASyncError(async (req, res, next) => {
-    const [rows, fields] = await db.execute(`SELECT id,username,email,user_group,user_status FROM accounts`);
+    const [rows, fields] = await db.execute(`SELECT id,username,email,groupname,isactive FROM accounts`);
     return res.status(200).json({
         success: true,
         message: rows
@@ -14,7 +14,7 @@ exports.showAllUser = catchASyncError(async (req, res, next) => {
 
 // create a new user function
 exports.createUser = catchASyncError(async (req, res, next) => {
-    var { userId, password, email, user_group, user_status } = req.body
+    var { userId, password, email, groupname, isactive } = req.body
 
     // if username and/or password has no input
     if (!userId || !password) {
@@ -32,20 +32,20 @@ exports.createUser = catchASyncError(async (req, res, next) => {
     };
 
     // user group is optional if user does not select a user group, user group will be saved null
-    if (!user_group) {
-        user_group = null;
+    if (!groupname) {
+        groupname = null;
     };
 
-    if (!user_status) {
+    if (!isactive) {
         return next(new ErrorHandler("User status is required", 401))
     }    
     
     //hashing password on new user creation
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const sql = `INSERT INTO accounts (username, password, email, user_group, user_status) VALUES (?,?,?,?,?)`;
-    // console.log(db.execute(sql, [username, hashPassword, email, user_group, user_status]));
-    const [row, field] = await db.execute(sql, [userId, hashPassword, email, user_group, user_status]);
+    const sql = `INSERT INTO accounts (username, password, email, groupname, isactive) VALUES (?,?,?,?,?)`;
+    // console.log(db.execute(sql, [username, hashPassword, email, groupname, user_status]));
+    const [row, field] = await db.execute(sql, [userId, hashPassword, email, groupname, isactive]);
 
     return res.status(200).json({
         success: true,
@@ -56,9 +56,9 @@ exports.createUser = catchASyncError(async (req, res, next) => {
 // admin edits user details
 exports.adminEditUser = catchASyncError(async (req, res, next) => {
     console.log('req.user:', req.user);
-    var { id, userId, password, email, user_group, user_status } = req.body;
+    var { id, userId, password, email, groupname, isactive } = req.body;
     console.log('** This will show the user that is being edited ***')
-    console.log('User ID: ', id, 'User:', userId, 'Pw:', password, 'Email:',email, 'Groups:',user_group, 'Status:',user_status );
+    console.log('User ID: ', id, 'User:', userId, 'Pw:', password, 'Email:',email, 'Groups:',groupname, 'Status:',isactive );
 
     // email is optional so if email is not valid input, user email will be saved as null
     if (!email) {
@@ -69,10 +69,10 @@ exports.adminEditUser = catchASyncError(async (req, res, next) => {
         password = null; // Set password to null if it's undefined
     }
 
-    if (user_group === '' || !user_group) {
-        user_group = null;
+    if (groupname === '' || !groupname) {
+        groupname = null;
     }
-    console.log (`User group from admin editing function: ${user_group}`)
+    console.log (`User group from admin editing function: ${groupname}`)
  
     if (password) {
         if (!validatePassword(password)) {
@@ -84,8 +84,8 @@ exports.adminEditUser = catchASyncError(async (req, res, next) => {
     }
 
     //if password==null then use old password database value, if email==null then set null in database
-    const sql = `UPDATE accounts SET username = ?, email = ?, user_group = ?, user_status = ?,password = COALESCE(?,password) WHERE id = ?;`
-    const [row, fields] = await db.execute(sql, [userId, email, user_group, user_status, password, id]);
+    const sql = `UPDATE accounts SET username = ?, email = ?, groupname = ?, isactive = ?,password = COALESCE(?,password) WHERE id = ?;`
+    const [row, fields] = await db.execute(sql, [userId, email, groupname, isactive, password, id]);
 
     return res.status(200).json({
         success: true,
@@ -135,7 +135,7 @@ exports.getUser = catchASyncError(async(req, res) => {
     const username = req.user.username
 
     console.log(username);
-    sql = "SELECT id,username,email,user_group,user_status FROM accounts WHERE username = ?";
+    sql = "SELECT id,username,email,groupname,isactive FROM accounts WHERE username = ?";
     const [row, fields] = await db.execute(sql, [username])
     console.log(row[0]);
 

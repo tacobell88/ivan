@@ -35,7 +35,7 @@ function Login() {
               //Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
               axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
-              console.log('Logged in user roles:', response.data.user.user_group); // Log user roles
+              console.log('Logged in user roles:', response.data.user.groupname); // Log user roles
               handleAlerts('Log in successfully', true)
               setIsLoggedIn(true); // Update login state
               navigate('/home'); // Redirect to home

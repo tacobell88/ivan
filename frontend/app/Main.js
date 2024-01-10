@@ -6,7 +6,6 @@ import Cookies from 'js-cookie';
 import { AuthContext, AuthProvider, useAuth } from './assets/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
-import AdminRoute from './routes/AdminRoute';
 
 import { ToastContainer, toast } from 'react-toastify';
 

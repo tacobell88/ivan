@@ -31,7 +31,7 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     
     // finding user in database that matches token id
     const [row, data] = await db.execute(`SELECT * FROM accounts where username = ?`, [decoded.userId]);
-    if (row[0].user_status == 'disabled') {
+    if (row[0].isactive == 'disabled') {
         throw next(new ErrorHandler('User is disabled' , 400))
     }
 

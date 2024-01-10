@@ -13,28 +13,12 @@ function HeaderLoggedIn() {
     const [isAdmin, setIsAdmin] = useState(false);
     const navigate = useNavigate();
     const {handleAlerts} = useContext(GlobalContext);
-    // TRYING TO USE CHECKGROUP INSTEAD (WORKING)
-    // useEffect(()=> {
-    //   try {
-    //     axios.post('http://localhost:8000/checkGroup', {
-    //           user_group: 'admin'
-    //     }).then((response)=> {
-    //       setIsAdmin(true);
-    //       console.log('Header Logged In are u working: ', response)
-    //     }).catch( (error) => console.log(error) );
-    //   //   if (response) {
-    //   //     setIsAdmin(true);
-    //   //   }
-    //   } catch (error) {
-    //     console.log(error.message);
-    //   }
-    // },[setIsLoggedIn]) 
 
     useEffect(() => {
       const checkAdmin = async() => {
         try {
           const response = await axios.post('http://localhost:8000/checkGroup', {
-                    user_group: 'admin'
+                    groupname: 'admin'
                   });
           console.log('response from checkAdmin in headerLoggedIn', response)
           if (response) {
@@ -45,7 +29,7 @@ function HeaderLoggedIn() {
             handleAlerts("User is not an admin", false);
             navigate('/');
           }
-          console.log('Error from headerLoggedIn: ', error.response.data.errMessage);
+          console.log('Error from headerLoggedIn: ', error.response.data);
         }
       }
       checkAdmin();

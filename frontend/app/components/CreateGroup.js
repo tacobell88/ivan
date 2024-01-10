@@ -31,7 +31,7 @@ export default function CreateGroup() {
 
         try {
             const response = await axios.post('http://localhost:8000/users/createRole', {
-                user_group: groupName
+                groupname: groupName
             });
             handleAlerts('Group successfully added into database', true);
             refreshUserData()

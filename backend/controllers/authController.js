@@ -30,7 +30,7 @@ exports.userLogin = catchASyncError(async (req, res, next) => {
 
     //checking if user status is active or disabled
     //if disabled don't allow login
-    if (row[0].user_status === 'disabled') {
+    if (row[0].isactive === 'disabled') {
         return next(new ErrorHandler('Account is disabled', 401));
     };
 

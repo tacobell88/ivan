@@ -21,7 +21,7 @@ function CreateUser() {
         const fetchGroups = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/users/getAllRoles');
-                const groupData = response.data.message.map(group => group.user_group);
+                const groupData = response.data.message.map(group => group.groupname);
                 setGroups(groupData);
                 
             } catch (error) {
@@ -59,8 +59,8 @@ function CreateUser() {
             userId: userData.username,  // Assuming 'username' in frontend corresponds to 'userId' in backend
             password: userData.password,
             email: userData.email,
-            user_group: userData.userGroups.join(','), // Join userGroups with a comma
-            user_status : userData.userStatus // status of the user can be set to active or disabled
+            groupname: userData.userGroups.join(','), // Join userGroups with a comma
+            isactive : userData.userStatus // status of the user can be set to active or disabled
         };
         console.log(submitData);
         try {
