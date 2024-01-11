@@ -19,9 +19,11 @@ app.use(express.json());
 
 const user = require('./routes/user');
 const auth = require('./routes/auth');
+const application = require('./routes/application');
 
 app.use(user);
 app.use(auth);
+app.use(application);
 
 app.use(errorMiddleware);
 
