@@ -26,10 +26,10 @@ function HeaderLoggedIn() {
           }
         } catch (error) {
           if (error.response.data.message == "Checking group failed") {
+            console.log('Error from headerLoggedIn: User is not authorized for user management tab')
             handleAlerts("User is not an admin", false);
             navigate('/');
           }
-          console.log('Error from headerLoggedIn: ', error.response.data);
         }
       }
       checkAdmin();

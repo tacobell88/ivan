@@ -10,7 +10,7 @@ function validRnumber (str) {
 
 function validateInput (str) {
     // this regex is to check alpha / alpha numeric only (no special characters) and less than 45 characters
-    const validRegex = new RegExp(/^[A-Za-z0-9 ]{0,45}$/);
+    const validRegex = new RegExp(/^[A-Za-z0-9]{0,45}$/);
     return validRegex.test(str);
 }
 
@@ -26,58 +26,65 @@ exports.createApp = catchASyncError(async(req, res, next) => {
         app_permit_todolist, 
         app_permit_doing,
         app_permit_done } = req.body;
-        
-        if (app_rnumber == '') {
-            throw next(new ErrorHandler('App rnumber is required', 400))
-        };
-        
-        // regex validation for rnumber to be within constraints
-        if (!validRnumber(app_rnumber)) {
-            throw next(new ErrorHandler('App rnumber has to be more than 0 and a whole number',400))
-        }
+    
 
-        if (!app_acronym || app_acronym.trim() == '') {
-            throw next(new ErrorHandler('App acronym is required', 400))
-        };
+    if (app_rnumber == '') {
+        throw next(new ErrorHandler('App rnumber is required', 400))
+    };
+    
+    // regex validation for rnumber to be within constraints
+    if (!validRnumber(app_rnumber)) {
+        throw next(new ErrorHandler('App rnumber has to be more than 0 and a whole number',400))
+    }
 
-        if (app_acronym.length > 45 || !validateInput(app_acronym)) { 
-            throw next(new ErrorHandler('App acronym has to have less than 45 characters and no special symbols', 400))
-        }
+    if (!app_acronym || app_acronym.trim() == '') {
+        throw next(new ErrorHandler('App acronym is required', 400))
+    };
 
-        if (!app_permit_create || !app_permit_open || !app_permit_todolist || !app_permit_doing || !app_permit_done) {
-            throw next(new ErrorHandler('App permissions are required', 400))
-        };
+    if (app_acronym.length > 45 || !validateInput(app_acronym)) { 
+        throw next(new ErrorHandler('App acronym has to have less than 45 characters and no special symbols or spaces', 400))
+    }
 
-        if (!app_startdate) {
-            throw next(new ErrorHandler('App requires a start date', 400))
-        };
+    if (!app_permit_create || !app_permit_open || !app_permit_todolist || !app_permit_doing || !app_permit_done) {
+        throw next(new ErrorHandler('App permissions are required', 400))
+    };
 
-        if (!app_enddate) {
-            throw next(new ErrorHandler('App requires a end date', 400))
-        };
+    if (!app_startdate) {
+        throw next(new ErrorHandler('App requires a start date', 400))
+    };
 
-        if (app_description == '') {
-            app_description = null
-        };
+    if (!app_enddate) {
+        throw next(new ErrorHandler('App requires a end date', 400))
+    };
 
-        const sql = `INSERT INTO applications (app_acronym, app_description, app_rnumber, app_startdate, app_enddate, 
-            app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing,
-            app_permit_done) VALUES(?,?,?,?,?,?,?,?,?,?)`;
+    if (app_description == '') {
+        app_description = null
+    };
 
-        const [rows, fields] = await db.execute(sql, [app_acronym, app_description, app_rnumber, app_startdate, app_enddate, 
-            app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing,
-            app_permit_done]);
-        
-        //not sure if this function will be needed
-        const sql2 = `SELECT * from applications WHERE app_acronym =?`
+    // checking group to make sure that only pm roles are allowed to add application
+    const response = await Checkgroup(username, 'pm');
+    if (!response) {
+        throw next(new ErrorHandler('User is not authorised to create apps', 400))
+    }
 
-        const [rows2, fields2] = await db.execute(sql2, [app_acronym])
+    const sql = `INSERT INTO applications (app_acronym, app_description, app_rnumber, app_startdate, app_enddate, 
+        app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing,
+        app_permit_done) VALUES(?,?,?,?,?,?,?,?,?,?)`;
 
-        return res.status(200).json({
-            success: true,
-            message: 'Application has been added successfully',
-            data: rows2[0]
-        });
+    const [rows, fields] = await db.execute(sql, [app_acronym, app_description, app_rnumber, app_startdate, app_enddate, 
+        app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing,
+        app_permit_done]);
+    
+    //not sure if this function will be needed
+    const sql2 = `SELECT * from applications WHERE app_acronym =?`
+
+    const [rows2, fields2] = await db.execute(sql2, [app_acronym])
+
+    return res.status(200).json({
+        success: true,
+        message: 'Application has been added successfully',
+        data: rows2[0]
+    });
 })
 
 // API to get all application information (mainly for view application)
@@ -97,9 +104,10 @@ exports.getAllApp = catchASyncError(async(req, res, next) => {
 });
 
 exports.getApp = catchASyncError(async(req,res) => {
-    const { app_acronym } = req.body
+    const { app_acronym } = req.query
 
     // const sql = "SELECT * FROM applications WHERE app_acronym = ?"
+
     const sql = "SELECT app_acronym, app_description, app_rnumber, app_startdate, app_enddate, app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing, app_permit_done FROM applications WHERE app_acronym = ?"
     const [rows, fields] = await db.execute(sql, [app_acronym])
 
@@ -178,7 +186,8 @@ exports.createPlan = catchASyncError(async(req,res, next) => {
         throw next(new ErrorHandler('Plan requires a end date', 400))
     }
 
-    // app permissions have to be check that user contains the role that is in the app_permit_create state
+    // app permissions to check that user contains the role that is specified under the app_permit_create when application created
+    
 
     const sql = `INSERT INTO plans (plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym) VALUES (?,?,?,?)`
     const [rows, fields] = await db.execute(sql, [plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym])
@@ -235,7 +244,7 @@ exports.getPlan = catchASyncError(async(req,res, next) => {
 })
 
 exports.editPlan = catchASyncError(async(req,res,next) => {
-    const {plan_mvp_name, plan_startdate, plan_enddate} = req.body
+    const {plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym} = req.body
 
     if (!plan_startdate) {
         plan_startdate = null
@@ -244,6 +253,13 @@ exports.editPlan = catchASyncError(async(req,res,next) => {
     if (!plan_enddate) {
         plan_enddate = null
     };
+
+    const sql2 = `SELECT app_permit_open FROM applications WHERE app_acronym =?`;
+    const [rows2, fields2 ] = await db.execute(sql2, [plan_app_acronym]);
+    
+    // get user's username and get the roles of the user
+    // then check the user's roles to see if it matches specified app_permit_open role
+    // if it matches the the user is allowed to edit the plan
 
     const sql = `UPDATE plans SET plan_startdate =?, plan_enddate WHERE plan_mvp_name =?`;
     const [rows, fields] = await db.execute(sql, [plan_startdate, plan_enddate, plan_mvp_name])
@@ -259,3 +275,8 @@ exports.editPlan = catchASyncError(async(req,res,next) => {
 })
 
 // --------------------------------- END OF PLAN RELATED API ----------------------------------
+
+// --------------------------------- START OF TASK RELATED API ----------------------------------
+//
+//
+// --------------------------------- END OF TASK RELATED API ----------------------------------

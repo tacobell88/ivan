@@ -21,6 +21,8 @@ import ExampleTable from './components/ExampleTable'
 import UserProfile from './components/UserProfile';
 import { UserManagementProvider } from './assets/UserMgntContext';
 import GlobalContext from "./assets/GlobalContext";
+import ViewApplication from './components/Application';
+import CreateApp from './components/CreateApplication';
 
 
 
@@ -79,12 +81,14 @@ function Component () {
             <BrowserRouter>
                 {isLoggedIn ? <Header /> : <div> </div> }
                 <Routes>
-                <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
-                <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
-                {/* TO WORK ON DOING A 404 PAGE */}
-                <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
-                {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
-                <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+                    <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+                    <Route path="/home" element={isLoggedIn && <ProtectedRoute> <HomePage /> </ProtectedRoute>} />
+                    {/* TO WORK ON DOING A 404 PAGE */}
+                    <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
+                    {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
+                    <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
+                    <Route path="/app/:appId" element={ isLoggedIn && <ProtectedRoute> <ViewApplication/> </ProtectedRoute>}/>
+                    <Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <CreateApp/> </ProtectedRoute>}/>
                 </Routes>
             </BrowserRouter>
         </GlobalContext.Provider>
@@ -98,7 +102,7 @@ root.render(
                 <UserManagementProvider>
                     <Component />
                 </UserManagementProvider>
-                <ToastContainer autoClose={1000} />
+                <ToastContainer autoClose={1000} pauseOnHover={false}/>
         </AuthProvider>   
 )
 if (module.hot) {

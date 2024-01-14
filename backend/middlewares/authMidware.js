@@ -46,9 +46,10 @@ exports.isAuthenticated = catchASyncError(async (req, res, next) => {
     next();
 });
 
-exports.isAuthRole = (groups) => {
+exports.isAuthRole = (...groups) => {
+    console.log('this is groups information: ', groups);
     return catchASyncError(async (req, res, next) => {
-        console.log('isAuthRole username:', req.user.username, 'Groups:', groups)
+        console.log('isAuthRole username:', req.user.username, 'Group to validate:', groups)
         const auth = await Checkgroup(req.user.username, groups);
         console.log('isAuthRole response: ', auth);
         if (!auth) {

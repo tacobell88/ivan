@@ -29,27 +29,39 @@ exports.getAllUserGroup = catchASyncError( async(req, res) => {
     })
 });
 
-exports.Checkgroup = catchASyncError(async (userId, GroupName) => {
+exports.Checkgroup = catchASyncError(async (userId, GroupNames) => {
     const [row, fields] = await db.execute(`SELECT groupname FROM accounts WHERE username= ?;`, [userId]);
     
-    console.log('Checkgroup result for all user groups for user: ', row);
+    console.log('(Checkgroup) User user_groups are: ', row);
     
-    if (row.length > 0 && row[0].groupname) {
-        row[0].groupname = row[0].groupname.split(",");
-        console.log('This is the result checkGroup groups: ', row[0].groupname);
-        console.log('This is the result checkGroup if user group includes passed value: ', row[0].groupname.includes(GroupName))
-        const result = row[0].groupname.includes(GroupName)
-        console.log(`Is the user part of the group ${GroupName} : ${result}`)
-        return result;
-    } else {
-        return false
-    }
+    // if (row.length > 0 && row[0].groupname) {
+    row[0].groupname = row[0].groupname.split(",");
+    console.log('This is the split up users user_groups: ',  row[0].groupname);
+    
+    //get intersection of user group and allowed group to see if user is authorized
+    const authorizedGroup = GroupNames.filter((value) => row[0].groupname.includes(value));
+    //if len>0 means user is authorized
+    if (authorizedGroup.length > 0) {
+        return true;
+    } else return false
+
+
+    //     //new implementation to handle multiple authorised roles
+    //     // const hasRequiredRole = GroupNames.some(GroupNames => userGroups.includes(GroupNames))
+    //     // console.log('This is the result checkGroup if user group includes passed value:', hasRequiredRole)
+    //     console.log('This is the result checkGroup if user group includes passed value: ', row[0].groupname.includes(GroupNames))
+    //     const result = row[0].groupname.includes(GroupNames)
+    //     console.log(`Is the user part of the group ${GroupNames} : ${result}`)
+    //     return result;
+    // } else {
+    //     return false
+    // }
 })
 
 // using checkgroup function to implement an API endpoint
 exports.CheckingGroup = catchASyncError (async (req, res, next) => {
     const username = req.user.username;
-    const group = req.body.groupname;
+    const group = [req.body.groupname];
     console.log(`(checkinggroup) User to be checked: ${username}`);
     console.log(`(checkinggroup) User groups to be checked: : ${group}`);
 

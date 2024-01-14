@@ -31,7 +31,7 @@ router.route('/users/updateUser').post(isAuthenticated, editUserProfile);
 
 // routes relating to user groups (roles) for admin
 router.route('/users/createRole').post(isAuthenticated, isAuthRole("admin"), createGroup);
-router.route('/users/getAllRoles').get(isAuthenticated, isAuthRole("admin"), getAllUserGroup);
+router.route('/users/getAllRoles').get(isAuthenticated, isAuthRole("admin","pl"), getAllUserGroup);
 router.route('/checkGroup').post(isAuthenticated, CheckingGroup);
 
 // routes without protection for debugging
