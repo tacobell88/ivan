@@ -18,15 +18,15 @@ const { createApp,
 
 
 // routes relating to app
-router.route('/app/createApp').post(createApp);
-router.route('/app/showAllApps').get(getAllApp);
-router.route('/app/showApp').get(getApp);
-router.route('/app/editApp').post(editApp);
+router.route('/app/createApp').post(isAuthenticated, isAuthRole("pl"), createApp);
+router.route('/app/showAllApps').get(isAuthenticated, getAllApp);
+router.route('/app/showApp').get(isAuthenticated, getApp);
+router.route('/app/editApp').post(isAuthenticated, editApp);
 
 //routes relating to plan
-router.route('/app/plan/createPlan').post(createPlan);
-router.route('/app/plan/getAllPlans').get(getAllPlans);
-router.route('/app/plan/getPlan').get(getPlan);
+router.route('/app/plan/createPlan').post(isAuthenticated, createPlan);
+router.route('/app/plan/getAllPlans').get(isAuthenticated, getAllPlans);
+router.route('/app/plan/getPlan').get(isAuthenticated, getPlan);
 
 
 module.exports = router;

@@ -42,7 +42,6 @@ function ViewApplication () {
             }
         };
         fetchGroups();
-
     }, [appId]);
 
     const handleEditClick = () => {

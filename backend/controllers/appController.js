@@ -26,7 +26,9 @@ exports.createApp = catchASyncError(async(req, res, next) => {
         app_permit_todolist, 
         app_permit_doing,
         app_permit_done } = req.body;
-    
+
+    const userId = req.user.username
+    console.log('CreateApp function requesting for username: ', req.user)
 
     if (app_rnumber == '') {
         throw next(new ErrorHandler('App rnumber is required', 400))
@@ -61,11 +63,11 @@ exports.createApp = catchASyncError(async(req, res, next) => {
         app_description = null
     };
 
-    // checking group to make sure that only pm roles are allowed to add application
-    const response = await Checkgroup(username, 'pm');
-    if (!response) {
-        throw next(new ErrorHandler('User is not authorised to create apps', 400))
-    }
+    // checking group to make sure that only pl roles are allowed to add application
+    // const response = await Checkgroup(userId, 'pl');
+    // if (!response) {
+    //     throw next(new ErrorHandler('User is not authorised to create apps', 400))
+    // }
 
     const sql = `INSERT INTO applications (app_acronym, app_description, app_rnumber, app_startdate, app_enddate, 
         app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing,

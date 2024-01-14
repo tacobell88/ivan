@@ -86,9 +86,10 @@ function Component () {
                     {/* TO WORK ON DOING A 404 PAGE */}
                     <Route path="/user-management" element={ isLoggedIn && <UserManagement />} />
                     {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
-                    <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile/> </ProtectedRoute>} />
-                    <Route path="/app/:appId" element={ isLoggedIn && <ProtectedRoute> <ViewApplication/> </ProtectedRoute>}/>
-                    <Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <CreateApp/> </ProtectedRoute>}/>
+                    <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile /> </ProtectedRoute>} />
+                    <Route path="/app/:appId" element={ isLoggedIn && <ProtectedRoute> <ViewApplication /> </ProtectedRoute>}/>
+                    {/*<Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <ViewPlan /> </ProtectedRoute>}/> */}
+                    <Route path="/app/create-app" element={ isLoggedIn && <ProtectedRoute> <CreateApp /> </ProtectedRoute>}/>
                 </Routes>
             </BrowserRouter>
         </GlobalContext.Provider>

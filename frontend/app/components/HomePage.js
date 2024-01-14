@@ -53,7 +53,7 @@ function HomePage () {
 
     const handleAdd = () => {
         //routing to create application page
-        navigate('/')
+        navigate('/app/create-app')
     }
 
     const handleView = (appId) => {

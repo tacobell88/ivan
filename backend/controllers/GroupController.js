@@ -31,7 +31,7 @@ exports.getAllUserGroup = catchASyncError( async(req, res) => {
 
 exports.Checkgroup = catchASyncError(async (userId, GroupNames) => {
     const [row, fields] = await db.execute(`SELECT groupname FROM accounts WHERE username= ?;`, [userId]);
-    
+    console.log(GroupNames);
     console.log('(Checkgroup) User user_groups are: ', row);
     
     // if (row.length > 0 && row[0].groupname) {

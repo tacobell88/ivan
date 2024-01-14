@@ -68,7 +68,7 @@ function CreateUser() {
             console.log('User creation response:', response.data);
             handleAlerts('User has been created', true);
             refreshUserData();
-            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: '' }); // Reset form fields
+            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: 'active' }); // Reset form fields
         } catch (error) {
             console.log('Error creating user:', error);
             if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
@@ -127,7 +127,7 @@ function CreateUser() {
                         />
                     </Grid>
                     <Grid item>
-                    <FormControl variant="outlined" size="small" fullWidth>
+                        <FormControl variant="outlined" size="small" fullWidth>
                             <InputLabel>User Group</InputLabel>
                             <Select
                                 multiple
