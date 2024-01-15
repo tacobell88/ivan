@@ -23,6 +23,7 @@ import { UserManagementProvider } from './assets/UserMgntContext';
 import GlobalContext from "./assets/GlobalContext";
 import ViewApplication from './components/Application';
 import CreateApp from './components/CreateApplication';
+import Plans from './components/Plans';
 
 
 
@@ -57,7 +58,7 @@ function Component () {
                         axios.defaults.headers.common["Authorization"] = "";
                         handleAlerts('Invalid Token', false);
                         setIsLoggedIn(false);
-                        // navigate('/');
+                        navigate('/');
                     }
                 } catch (error) {
                     console.log('Verify Token Error: ', error)
@@ -88,8 +89,9 @@ function Component () {
                     {/* <Route path = '/user-management' element={<UserManagement /> } /> */}
                     <Route path="/user-profile" element={ isLoggedIn && <ProtectedRoute> <UserProfile /> </ProtectedRoute>} />
                     <Route path="/app/:appId" element={ isLoggedIn && <ProtectedRoute> <ViewApplication /> </ProtectedRoute>}/>
-                    {/*<Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <ViewPlan /> </ProtectedRoute>}/> */}
-                    <Route path="/app/create-app" element={ isLoggedIn && <ProtectedRoute> <CreateApp /> </ProtectedRoute>}/>
+                    {/* <Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <ViewPlan /> </ProtectedRoute>}/> */}
+                    {/* <Route path="/app/create-app" element={ isLoggedIn && <ProtectedRoute> <CreateApp /> </ProtectedRoute>}/> */}
+                    <Route path="/app/:appId/plans" element={ isLoggedIn && <ProtectedRoute> <Plans /> </ProtectedRoute>}/>
                 </Routes>
             </BrowserRouter>
         </GlobalContext.Provider>

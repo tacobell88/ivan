@@ -51,7 +51,7 @@ function CreateUser() {
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(userData.username)) {
             // setError("Group name must be a single word either alpha/alphanumberic")
-            alert('Username can only contain alpha/alphanumeric characters with no spaces');
+            handleAlerts('Username can only contain alpha/alphanumeric characters with no spaces', false);
             return;
         }
 

@@ -142,16 +142,6 @@ exports.editApp = catchASyncError(async(req,res) => {
         })
 })
 
-// exports.createPlan = catchASyncError(async(req,res) => {
-    
-//     // figure out how pass app_acronym can be passed
-//     const app_acronym = req.body;
-//     const { plan_mvp_name, plan_startdate, plan_enddate } = req.body
-
-//     const sql = `INSERT INTO plans(plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym) VALUES(?,?,?,?)`
-//     const [rows, fields] = await db.execute(sql, [plan_mvp_name, plan_startdate, plan_enddate, app_acronym])
-// })
-
 // getting user groups for app permissions for different states
 // Open state app permissions - PM
 // ToDo state app permssions - Dev

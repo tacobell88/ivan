@@ -2,17 +2,41 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import Page from "./Page";
-import { Button, Paper, Select, Table, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material";
+import { Button, Paper, Select, Table, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 
 function ViewApplication () {
     const { appId } = useParams();
     const [ appData, setAppData ] = useState([])
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [ isEditMode, setIsEditMode ] = useState(false);
     const [ groupData, setGroupData ] = useState([]);
+    const [ isPL, setIsPL ] = useState('');
     
     console.log('This is appId taken from HomePage to be used on ViewApplication: ', appId)
+
+    // This useEffect is running on view applciation page to verify if the user is PL to see edit button
     useEffect(() => {
-        console.log('Running useEffect on ViewApplication page to get specific app info')
+        console.log('useEffect on View Application running to verify user')
+        const validateUser = async() => {
+            try {
+                const response = await axios.post('http://localhost:8000/checkGroup', {
+                    groupname: 'pl'
+                  });
+                console.log('This is the response from group checking for homepage: ', response)
+                if (response) {
+                    console.log('User is authorised for add application button')
+                    setIsPL(true);
+                }
+            } catch (error) {
+                if(error.response.data.errMessage === "Checking group failed") {
+                    console.log('User is not authorized for add application button')
+                };
+            }
+        }
+        validateUser();
+    }, [])
+
+    useEffect(() => {
+        console.log('Running useEffect on View Application page to get specific app info')
         const fetchAppData = async() => {
             try {
                 const response = await axios.get('http://localhost:8000/app/showApp', {
@@ -71,17 +95,23 @@ function ViewApplication () {
                 <TableRow>
                     <TableHead>
                         <TableCell>
-                            View Application
+                            <Typography variant ="h5">
+                                <b>View Application</b>
+                            </Typography>
                         </TableCell>
                     </TableHead>
                 </TableRow>
                 <TableRow>
                     <TableHead>
-                        <TableCell >
-                            App Details
+                        <TableCell>
+                            <Typography variant="h6">
+                                App Details
+                            </Typography>
                         </TableCell>
                         <TableCell>
-                            Permissions
+                            <Typography variant="h6">
+                                Permissions
+                            </Typography>
                         </TableCell>
                     </TableHead>
                 </TableRow>
@@ -103,15 +133,15 @@ function ViewApplication () {
                     <TableCell>
                     <Select
                         name="app_permit_create"
-                        value={appData ? appData.app_permit_create : ''}
                         size="small"
+                        defaultValue={appData.app_permit_create}
                         disabled = {!isEditMode}
                     />
                     </TableCell>
                 </TableRow>
                 <TableRow>
                     <TableCell> 
-                        App R number: 
+                        App R number:
                     </TableCell>
                     <TableCell> 
                         <TextField
@@ -122,7 +152,7 @@ function ViewApplication () {
                         />
                     </TableCell>
                     <TableCell> 
-                    Edit Open Tasks: 
+                        Edit Open Tasks: 
                     </TableCell>
                     <TableCell>
                     <Select
@@ -149,10 +179,10 @@ function ViewApplication () {
                         Edit To-Do Tasks: 
                     </TableCell>
                     <TableCell>
-                    <Select
-                        size="small"
-                        disabled = {true}
-                    />
+                        <Select
+                            size="small"
+                            disabled = {true}
+                        />
                     </TableCell>
                 </TableRow>
                 <TableRow>
@@ -185,27 +215,31 @@ function ViewApplication () {
                     </TableCell>
                     <TableCell> 
                         <TextField
-                        name="app_enddate"
-                        value={appData ? appData.app_enddate : ''}
-                        size="small"
-                        disabled = {!isEditMode}
+                            name="app_enddate"
+                            value={appData ? appData.app_enddate : ''}
+                            size="small"
+                            disabled = {!isEditMode}
                         />
                     </TableCell>
                     <TableCell> 
                         Edit Done Tasks: 
                     </TableCell>
                     <TableCell>
-                    <Select
-                        size="small"
-                        disabled = {true}
-                    />
+                        <Select
+                            size="small"
+                            disabled = {true}
+                        />
                     </TableCell>
                 </TableRow>
                 <TableRow>
                     <TableCell>
-                        <Button onClick={isEditMode ? handleSaveClick : handleEditClick}>
-                            {isEditMode ? "Save" : "Edit"}
-                        </Button>
+                        {isPL ? <Button 
+                                    onClick={isEditMode ? handleSaveClick : handleEditClick}
+                                    variant="contained"
+                                    color={isEditMode ? "success" : "primary"}
+                                >
+                                    {isEditMode ? "Save" : "Edit"}
+                                </Button> : ''}
                     </TableCell>
                 </TableRow>
                 </TableContainer>

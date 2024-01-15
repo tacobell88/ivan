@@ -38,7 +38,11 @@ exports.createUser = catchASyncError(async (req, res, next) => {
 
     if (!isactive) {
         return next(new ErrorHandler("User status is required", 401))
-    }    
+    }
+
+    if (!validateInput(username)) {
+        return next(new ErrorHandler("Username needs to be between 0-45 characters and no special characters/spaces", 400))
+    }
     
     //hashing password on new user creation
     const hashPassword = await bcrypt.hash(password, 10);
@@ -156,6 +160,10 @@ function validatePassword (str) {
     return passRegex.test(str);
 };
 
+function validateInput (str) {
+    const validRegex = new RegExp(/^[a-zA-Z0-9]{1,45}$/)
+    return validRegex.test(str);
+}
 
 
     
