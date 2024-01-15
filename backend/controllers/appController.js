@@ -268,7 +268,29 @@ exports.editPlan = catchASyncError(async(req,res,next) => {
 
 // --------------------------------- END OF PLAN RELATED API ----------------------------------
 
+
 // --------------------------------- START OF TASK RELATED API ----------------------------------
 //
 //
+// creating task API
+exports.createTask = catchASyncError(async(req,res,next) => {
+    const {task_name, task_description, task_plan, task_app_acronym } = req.body;
+    
+    // getting current user's username to assign it as task owner
+    const task_owner = req.user.username;
+
+    // check if task name is empty or not
+    if (!task_name || task_name.trim() === '') {
+        throw next(new ErrorHandler('Task name is required', 400))
+    }
+
+    // getting current date, and time for audit trail
+})
+
+exports.getTask = catchASyncError(async(req,res,next) => {
+    const { app_acronym } = req.body;
+
+    const sql = `SELECT * FROM tasks WHERE task_app_acronym =?`
+    const [rows, fields] = await db.execute(sql, [app_acronym]);
+})
 // --------------------------------- END OF TASK RELATED API ----------------------------------
