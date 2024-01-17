@@ -66,7 +66,7 @@ function CreateApp() {
       ...prevData,
       app_startdate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log(newValue.format("DD-MM-YYYY")); // Format date
+    //console.log(newValue.format("DD-MM-YYYY")); // Format date
     console.log(
       "This is trying to see what is app data for start date: ",
       appData.app_startdate
@@ -79,7 +79,7 @@ function CreateApp() {
       ...prevData,
       app_enddate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log(newValue.format("DD-MM-YYYY"));
+    //console.log(newValue.format("DD-MM-YYYY"));
     console.log(
       "This is trying to see what is app data for end date: ",
       appData.app_enddate
@@ -122,30 +122,46 @@ function CreateApp() {
     };
     console.log("This is the data to be sent to createApp API: ", newData);
     try {
-      const response = axios.post(
+      const response = await axios.post(
         "http://localhost:8000/app/createApp",
         newData
       );
       console.log(response.data);
-      handleAlerts("Application created", true);
-      setAppData({
-        app_acronym: "",
-        app_description: "",
-        app_rnumber: "",
-        app_startdate: null,
-        app_enddate: null,
-        app_permit_create: "",
-        app_permit_open: "",
-        app_permit_todolist: "",
-        app_permit_doing: "",
-        app_permit_done: "",
-      });
-    } catch (error) {
-      // handle error message
-      console.log(error.data.error);
-      if (response.data.error.errMessage == " ") {
-        handleAlerts("", false);
+      if (response) {
+        handleAlerts("Application created", true);
+        setStartDate("");
+        setEndDate("");
+        setAppData({
+          app_acronym: "",
+          app_description: "",
+          app_rnumber: "",
+          app_startdate: "",
+          app_enddate: "",
+          app_permit_create: "",
+          app_permit_open: "",
+          app_permit_todolist: "",
+          app_permit_doing: "",
+          app_permit_done: "",
+        });
       }
+    } catch (error) {
+      console.log("Catching error for app creation: ", error);
+      const errMessage = error.response.data.errMessage;
+      handleAlerts(errMessage, false);
+
+      // switch (error.response.data.errMessage) {
+      //   case "App rnumber is required":
+      //     handleAlerts("App rnumber is required", false);
+      //     break;
+      //   default:
+      //     console.log(error.response.data);
+      // if (error.response.data.errMessage === "App acronym is required") {
+      //   handleAlerts("App acronym is required", false);
+    }
+  };
+  const preventMinus = (e) => {
+    if (e.code === "Minus") {
+      e.preventDefault();
     }
   };
 
@@ -218,9 +234,12 @@ function CreateApp() {
               <TableCell>App R number:</TableCell>
               <TableCell>
                 <TextField
+                  type="number"
+                  defaultValue={0}
+                  inputProps={{ min: 0, max: 100000 }}
+                  onKeyDown={preventMinus}
                   name="app_rnumber"
                   label="Enter a number"
-                  value={appData.app_rnumber}
                   onChange={handleChange}
                   size="small"
                 />

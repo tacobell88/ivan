@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Page from "./Page";
+import Page from "../components/Page";
 import {
   Button,
   Grid,
@@ -16,7 +16,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { end } from "../../../backend/config/database";
 
 export default function Plans() {
   const { appId } = useParams();
@@ -57,11 +56,11 @@ export default function Plans() {
             params: { plan_app_acronym: appId },
           }
         );
-        const formatData = response.data.data.map(plan => ({
+        const formatData = response.data.data.map((plan) => ({
           ...plan,
-          plan_startdate: dayjs(plan.plan_startdate, 'DD-MM-YYYY'),
-          plan_enddate: dayjs(plan.plan_enddate, 'DD-MM-YYYY')
-        }))
+          plan_startdate: dayjs(plan.plan_startdate, "DD-MM-YYYY"),
+          plan_enddate: dayjs(plan.plan_enddate, "DD-MM-YYYY"),
+        }));
         setPlanData(formatData);
         console.log("This is plan information: ", response.data.data);
       } catch (error) {
@@ -130,16 +129,16 @@ export default function Plans() {
   const handleAdd = () => {};
 
   const handleEditClick = () => {
-    setIsEditMode(true)
-  }
+    setIsEditMode(true);
+  };
 
   const handleCancelClick = () => {
-    setIsEditMode(false)
-  }
+    setIsEditMode(false);
+  };
 
   const handleSaveClick = () => {
-    setIsEditMode(false)
-  }
+    setIsEditMode(false);
+  };
 
   return (
     <Page title="Plans Page">
@@ -205,11 +204,11 @@ export default function Plans() {
                       ></TextField>
                     </TableCell>
                     <TableCell>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
                           name="app_startdate"
                           label="Start Date"
-                          disabled = {!isEditMode}
+                          disabled={!isEditMode}
                           value={startDate}
                           onChange={handleStartDateChange}
                           sx={{ width: 200 }}
@@ -224,41 +223,41 @@ export default function Plans() {
                           label="End Date"
                           disabled={!isEditMode}
                           value={endDate}
-                          sx={{ width: 200, marginRight: 2.5}}
+                          sx={{ width: 200, marginRight: 2.5 }}
                           slotProps={{ textField: { size: "small" } }}
                           onChange={handleEndDateChange}
                         />
                       </LocalizationProvider>
                     </TableCell>
                     <TableCell>
-                    {isEditMode ? (
-                      <>
+                      {isEditMode ? (
+                        <>
+                          <Button
+                            onClick={handleSaveClick}
+                            variant="contained"
+                            color="success"
+                            style={{ marginLeft: 20 }}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            onClick={handleCancelClick}
+                            variant="outlined"
+                            color="error"
+                            style={{ marginLeft: "10px" }}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
                         <Button
-                          onClick={handleSaveClick}
+                          onClick={handleEditClick}
                           variant="contained"
-                          color="success"
-                          style={{ marginLeft: 20 }}
+                          color="primary"
                         >
-                          Save
+                          Edit
                         </Button>
-                        <Button
-                          onClick={handleCancelClick}
-                          variant="outlined"
-                          color="error"
-                          style={{ marginLeft: "10px" }}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        onClick={handleEditClick}
-                        variant="contained"
-                        color="primary"
-                      >
-                        Edit
-                      </Button>
-                    )}
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

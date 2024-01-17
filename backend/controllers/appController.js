@@ -37,7 +37,7 @@ exports.createApp = catchASyncError(async (req, res, next) => {
   }
 
   // regex validation for rnumber to be within constraints
-  if (!validRnumber(app_rnumber)) {
+  if (!validRnumber(app_rnumber) && app_rnumber < 200000) {
     throw next(
       new ErrorHandler(
         "App rnumber has to be more than 0 and a whole number",
@@ -132,14 +132,19 @@ exports.getAllApp = catchASyncError(async (req, res, next) => {
   });
 });
 
-exports.getApp = catchASyncError(async (req, res) => {
+exports.getApp = catchASyncError(async (req, res, next) => {
   const { app_acronym } = req.query;
-
-  // const sql = "SELECT * FROM applications WHERE app_acronym = ?"
+  //const { app_acronym } = req.body;
 
   const sql =
     "SELECT app_acronym, app_description, app_rnumber, app_startdate, app_enddate, app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing, app_permit_done FROM applications WHERE app_acronym = ?";
   const [rows, fields] = await db.execute(sql, [app_acronym]);
+
+  if (rows.length === 0) {
+    return next(
+      new ErrorHandler(`There are no applications called ${app_acronym}`, 400)
+    );
+  }
 
   return res.status(200).json({
     success: true,
@@ -161,7 +166,9 @@ exports.editApp = catchASyncError(async (req, res) => {
     app_permit_done,
   } = req.body;
 
-  const sql = `UPDATE accounts SET app_description=?,app_startdate=?, app_enddate=?, app_permit_create=?, app_permit_open=?, app_permit_todolist=?, app_permit_doing=?, app_permit_done=? WHERE app_acronym =?`;
+  console.log(app_acronym);
+
+  const sql = `UPDATE applications SET app_description=?,app_startdate=?, app_enddate=?, app_permit_create=?, app_permit_open=?, app_permit_todolist=?, app_permit_doing=?, app_permit_done=? WHERE app_acronym =?`;
 
   const [rows, fields] = await db.execute(sql, [
     app_description,
@@ -181,18 +188,6 @@ exports.editApp = catchASyncError(async (req, res) => {
   });
 });
 
-// getting user groups for app permissions for different states
-// Open state app permissions - PM
-// ToDo state app permssions - Dev
-// Doing state app permssions - Dev
-// Done state app permssions -PL
-// =============================== WORK IN PROGRESS ====================================
-exports.getAppPermissions = catchASyncError(async (req, res) => {
-  //
-  const {} = req.body; //
-}); //
-// =============================== WORK IN PROGRESS ================================
-
 // --------------------------------- START OF PLAN RELATED API ----------------------------------
 // to create a plan for the specific application
 // *** ADDITIONAL INFO: user is only allowed to create a
@@ -201,6 +196,8 @@ exports.createPlan = catchASyncError(async (req, res, next) => {
   var { plan_mvp_name, plan_startdate, plan_enddate } = req.body;
 
   const { plan_app_acronym } = req.query;
+
+  const username = req.user.username;
 
   if (!plan_mvp_name || plan_mvp_name.trim() == "") {
     throw next(new ErrorHandler("Plan name is required", 400));
@@ -223,7 +220,48 @@ exports.createPlan = catchASyncError(async (req, res, next) => {
     throw next(new ErrorHandler("Plan requires a end date", 400));
   }
 
-  // app permissions to check that user contains the role that is specified under the app_permit_create when application created
+  // check if app exist in the application before being able to insert a new plan
+  const checkAppSql = `SELECT * FROM applications WHERE app_acronym = ?`;
+  const [checkAppRows, checkAppFields] = await db.execute(checkAppSql, [
+    plan_app_acronym,
+  ]);
+
+  if (checkAppRows.length === 0) {
+    throw next(
+      new ErrorHandler(`${plan_app_acronym} application does not exist`, 400)
+    );
+  }
+
+  // app permissions to check that user contains the role that is specified under th12e app_permit_create when application created
+  const permSql = `SELECT app_permit_open FROM applications where app_acronym =?`;
+  const [permSqlRows, permSqlFields] = await db.execute(permSql, [
+    plan_app_acronym,
+  ]);
+
+  // could be an unneccessary check because app_permits cannot accept null values
+  if (permSqlRows.length === 0) {
+    return next(
+      new ErrorHandler(
+        `There are no permissions granted for ${plan_app_acronym}`,
+        400
+      )
+    );
+  }
+
+  // logging the permission result
+  console.log("This is query result of permsql: ", [
+    permSqlRows[0].app_permit_open,
+  ]);
+
+  // checking if user that is trying to create the plan
+  const checkPlanAuth = await Checkgroup(username, [
+    permSqlRows[0].app_permit_open,
+  ]);
+  if (!checkPlanAuth) {
+    throw next(
+      new ErrorHandler(`${username} is not allowed to create plans`, 400)
+    );
+  }
 
   const sql = `INSERT INTO plans (plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym) VALUES (?,?,?,?)`;
   const [rows, fields] = await db.execute(sql, [
@@ -232,6 +270,10 @@ exports.createPlan = catchASyncError(async (req, res, next) => {
     plan_enddate,
     plan_app_acronym,
   ]);
+
+  if (rows.length === 0) {
+    throw next(new ErrorHandler("Unable to add plans", 400));
+  }
 
   // to return data of newly added plan for application in json fomat
   const sql2 = `SELECT * from plans WHERE plan_mvp_name =? AND plan_app_acronym =?`;
@@ -294,6 +336,8 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
   const { plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym } =
     req.body;
 
+  const username = req.user.username;
+
   if (!plan_startdate) {
     plan_startdate = null;
   }
@@ -302,12 +346,38 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
     plan_enddate = null;
   }
 
-  const sql2 = `SELECT app_permit_open FROM applications WHERE app_acronym =?`;
-  const [rows2, fields2] = await db.execute(sql2, [plan_app_acronym]);
-
   // get user's username and get the roles of the user
   // then check the user's roles to see if it matches specified app_permit_open role
   // if it matches the the user is allowed to edit the plan
+  const permSql = `SELECT app_permit_open FROM applications where app_acronym =?`;
+  const [permSqlRows, permSqlFields] = await db.execute(permSql, [
+    plan_app_acronym,
+  ]);
+
+  // could be an unneccessary check because app_permits cannot accept null values
+  if (permSqlRows.length === 0) {
+    return next(
+      new ErrorHandler(
+        `There are no permissions granted for ${plan_app_acronym}`,
+        400
+      )
+    );
+  }
+
+  // logging the permission result
+  console.log("This is query result of permsql: ", [
+    permSqlRows.app_permit_open,
+  ]);
+
+  // checking if user that is trying to create the plan
+  const checkPlanAuth = await Checkgroup(username, [
+    permSqlRows.app_permit_open,
+  ]);
+  if (!checkPlanAuth) {
+    throw next(
+      new ErrorHandler(`${username} is not allowed to create plans`, 400)
+    );
+  }
 
   const sql = `UPDATE plans SET plan_startdate =?, plan_enddate WHERE plan_mvp_name =?`;
   const [rows, fields] = await db.execute(sql, [
@@ -352,4 +422,17 @@ exports.getTask = catchASyncError(async (req, res, next) => {
   const sql = `SELECT * FROM tasks WHERE task_app_acronym =?`;
   const [rows, fields] = await db.execute(sql, [app_acronym]);
 });
+
+// getting user groups for app permissions for different states for ***TASK***
+// Open state app permissions - PM
+// ToDo state app permssions - Dev
+// Doing state app permssions - Dev
+// Done state app permssions -PL
+// =============================== WORK IN PROGRESS ====================================
+exports.getAppPermissions = catchASyncError(async (req, res) => {
+  const { task_app_acronym, task_state } = req.body; //
+
+  //sql statement to get the ncessary permissions for the app
+}); //
+// =============================== WORK IN PROGRESS ================================
 // --------------------------------- END OF TASK RELATED API ----------------------------------

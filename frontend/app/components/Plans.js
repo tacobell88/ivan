@@ -16,7 +16,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { end } from "../../../backend/config/database";
 
 export default function Plans() {
   const { appId } = useParams();
@@ -43,6 +42,7 @@ export default function Plans() {
     appId
   );
 
+  // ******** WHOEVER WHO CAN CREATE PLANS IS THE ONE WITH THE APP_PERMIT_OPEN
   useEffect(() => {
     console.log(
       "UseEffect running on plans page to get all plans related to task"
@@ -57,12 +57,12 @@ export default function Plans() {
             params: { plan_app_acronym: appId },
           }
         );
-        const formatData = response.data.data.map(plan => ({
+        const formatData = response.data.data.map((plan) => ({
           ...plan,
-          plan_startdate: dayjs(plan.plan_startdate, 'DD-MM-YYYY'),
-          plan_enddate: dayjs(plan.plan_enddate, 'DD-MM-YYYY'),
-          isEditMode: false
-        }))
+          plan_startdate: dayjs(plan.plan_startdate, "DD-MM-YYYY"),
+          plan_enddate: dayjs(plan.plan_enddate, "DD-MM-YYYY"),
+          isEditMode: false,
+        }));
         setPlanData(formatData);
         console.log("This is plan information: ", response.data.data);
       } catch (error) {
@@ -79,7 +79,8 @@ export default function Plans() {
       ...prevData,
       plan_startdate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log("This will be for start date", newValue.format("DD-MM-YYYY")); // Format date
+    console.log("This will be for start date: ", plan_startdate);
+    //console.log("This will be for start date", newValue.format("DD-MM-YYYY")); // Format date
     // console.log(
     //   "This is trying to see what is plan data for start date: ",
     //   appData.app_startdate
@@ -93,11 +94,8 @@ export default function Plans() {
       ...prevData,
       plan_enddate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log("This will be for end date", newValue.format("DD-MM-YYYY"));
-    // console.log(
-    //   "This is trying to see what is plan data for end date: ",
-    //   appData.app_enddate
-    // );
+    console.log("This will be for end date: ", plan_enddate);
+    //console.log("This will be for end date", newValue.format("DD-MM-YYYY"));
   };
 
   //handling plan change in the table
@@ -131,16 +129,16 @@ export default function Plans() {
   const handleAdd = () => {};
 
   const handleEditClick = () => {
-    setIsEditMode(true)
-  }
+    setIsEditMode(true);
+  };
 
   const handleCancelClick = () => {
-    setIsEditMode(false)
-  }
+    setIsEditMode(false);
+  };
 
   const handleSaveClick = () => {
-    setIsEditMode(false)
-  }
+    setIsEditMode(false);
+  };
 
   return (
     <Page title="Plans Page">
@@ -186,92 +184,117 @@ export default function Plans() {
       </Grid>
       <Grid item>
         <Paper style={{ marginTop: 20 }}>
-        <TableContainer>
-  <TableHead>
-    <TableRow>
-      <TableCell>Plan Name</TableCell>
-      <TableCell>Start Date</TableCell>
-      <TableCell>End Date</TableCell>
-      <TableCell>Actions</TableCell>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    {planData &&
-planData.map((plan, index) => (
-<TableRow key={index}>
-<TableCell>
-<TextField
-           value={plan.plan_mvp_name}
-           size="small"
-           disabled
-         />
-</TableCell>
-<TableCell>
-<LocalizationProvider dateAdapter={AdapterDayjs}>
-<DatePicker
-name="app_startdate"
-label="Start Date"
-disabled={!plan.isEditMode}
-value={dayjs(plan.plan_startdate, "DD-MM-YYYY")}
-onChange={(newValue) => {
-  const updatedPlans = planData.map((p, idx) => {
-    if (idx === index) {
-      return { ...p, plan_startdate: newValue ? newValue.format("DD-MM-YYYY") : '' };
-    }
-    return p;
-  });
-  setPlanData(updatedPlans);
-}}
-renderInput={(params) => <TextField {...params} size="small" />}
-/>
-</LocalizationProvider>
-</TableCell>
-<TableCell>
-<LocalizationProvider dateAdapter={AdapterDayjs}>
-<DatePicker
-name="app_enddate"
-label="End Date"
-disabled={!plan.isEditMode}
-value={dayjs(plan.plan_enddate, "DD-MM-YYYY")}
-onChange={(newValue) => {
-  const updatedPlans = planData.map((p, idx) => {
-    if (idx === index) {
-      return { ...p, plan_enddate: newValue ? newValue.format("DD-MM-YYYY") : '' };
-    }
-    return p;
-  });
-  setPlanData(updatedPlans);
-}}
-renderInput={(params) => <TextField {...params} size="small" />}
-/>
-</LocalizationProvider>
-</TableCell>
-<TableCell>
-{plan.isEditMode ? (
-<>
-<Button onClick={() => handleSaveClick(index)} variant="contained" color="success">Save</Button>
-<Button onClick={() => handleCancelClick(index)} variant="outlined" color="error" style={{ marginLeft: 10 }}>Cancel</Button>
-</>
-) : (
-<Button onClick={() => handleEditClick(index)} variant="contained" color="primary">Edit</Button>
-)}
-</TableCell>
-</TableRow>
-))}
-</TableBody>
-</TableContainer>
+          <TableContainer>
+            <TableHead>
+              <TableRow>
+                <TableCell>Plan Name</TableCell>
+                <TableCell>Start Date</TableCell>
+                <TableCell>End Date</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {planData &&
+                planData.map((plan, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <TextField
+                        value={plan.plan_mvp_name}
+                        size="small"
+                        disabled
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          name="app_startdate"
+                          label="Start Date"
+                          disabled={!plan.isEditMode}
+                          slotProps={{ textField: { size: "small" } }}
+                          value={dayjs(plan.plan_startdate, "DD-MM-YYYY")}
+                          onChange={(newValue) => {
+                            const updatedPlans = planData.map((p, idx) => {
+                              if (idx === index) {
+                                return {
+                                  ...p,
+                                  plan_startdate: newValue
+                                    ? newValue.format("DD-MM-YYYY")
+                                    : "",
+                                };
+                              }
+                              return p;
+                            });
+                            setPlanData(updatedPlans);
+                          }}
+                          renderInput={(params) => (
+                            <TextField {...params} size="small" />
+                          )}
+                        />
+                      </LocalizationProvider>
+                    </TableCell>
+                    <TableCell>
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          name="app_enddate"
+                          label="End Date"
+                          disabled={!plan.isEditMode}
+                          slotProps={{ textField: { size: "small" } }}
+                          value={dayjs(plan.plan_enddate, "DD-MM-YYYY")}
+                          onChange={(newValue) => {
+                            const updatedPlans = planData.map((p, idx) => {
+                              if (idx === index) {
+                                return {
+                                  ...p,
+                                  plan_enddate: newValue
+                                    ? newValue.format("DD-MM-YYYY")
+                                    : "",
+                                };
+                              }
+                              return p;
+                            });
+                            setPlanData(updatedPlans);
+                          }}
+                          renderInput={(params) => (
+                            <TextField {...params} size="small" />
+                          )}
+                        />
+                      </LocalizationProvider>
+                    </TableCell>
+                    <TableCell>
+                      {plan.isEditMode ? (
+                        <>
+                          <Button
+                            onClick={() => handleSaveClick(index)}
+                            variant="contained"
+                            color="success"
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            onClick={() => handleCancelClick(index)}
+                            variant="outlined"
+                            color="error"
+                            style={{ marginLeft: 10 }}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          onClick={() => handleEditClick(index)}
+                          variant="contained"
+                          color="primary"
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </TableContainer>
         </Paper>
       </Grid>
     </Page>
   );
 }
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, Route, useNavigate, useParams } from "react-router-dom";
 import Page from "./Page";
 import {
@@ -18,12 +18,14 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import MuiLink from "@mui/material/Link";
 import CreateApp from "./CreateApplication";
+import GlobalContext from "../assets/GlobalContext";
 
 function HomePage() {
   const [appData, setAppData] = useState();
   const [isPL, setIsPL] = useState("");
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { handleAlerts } = useContext(GlobalContext);
 
   // useEffect in place to check user group to see if it's PM
   // only PM is allowed to have 'Add Application' button

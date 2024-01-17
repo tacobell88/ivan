@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Page from "./Page";
 import {
   Button,
@@ -18,6 +18,7 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import Container from "./Container";
+import GlobalContext from "../assets/GlobalContext";
 
 function ViewApplication() {
   const { appId } = useParams();
@@ -27,6 +28,8 @@ function ViewApplication() {
   const [isPL, setIsPL] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const navigate = useNavigate();
+  const { handleAlerts } = useContext(GlobalContext);
 
   console.log(
     "This is appId taken from HomePage to be used on ViewApplication: ",
@@ -65,6 +68,7 @@ function ViewApplication() {
     const fetchAppData = async () => {
       try {
         const response = await axios.get("http://localhost:8000/app/showApp", {
+          // app_acronym: appId,
           params: { app_acronym: appId }, //use params id here
         });
         console.log(
@@ -87,7 +91,13 @@ function ViewApplication() {
         setEndDate(formatEndDate);
         setAppData(response.data.data);
       } catch (error) {
-        console.log(error);
+        if (
+          error.response.data.errMessage ===
+          `There are no applications called ${appId}`
+        ) {
+          handleAlerts(`There are no applications called ${appId}`, false);
+          navigate("/");
+        }
       }
     };
     fetchAppData();
@@ -116,12 +126,6 @@ function ViewApplication() {
 
   const handleEditClick = () => {
     setIsEditMode(true);
-  };
-
-  const handleSaveClick = async () => {
-    // Implement API call to update the data
-    // axios.post('API_ENDPOINT', updatedData);
-    setIsEditMode(false);
   };
 
   const handleCancelClick = () => {
@@ -162,6 +166,25 @@ function ViewApplication() {
       "This is trying to see what is app data for end date: ",
       appData.app_enddate
     );
+  };
+
+  const handleSaveClick = async () => {
+    // Implement API call to update the data
+    // axios.post('API_ENDPOINT', updatedData);
+    const updatedData = {};
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/app/editApp",
+        appData
+      );
+      console.log("Response for submit button: ", response);
+      handleAlerts("Application information has been updated", true);
+    } catch (error) {
+      console.log("Catching error for app creation: ", error);
+      const errMessage = error.response.data.errMessage;
+      handleAlerts(errMessage, false);
+    }
+    setIsEditMode(false);
   };
 
   return (
@@ -261,9 +284,11 @@ function ViewApplication() {
               <TableCell>Edit To-Do Tasks:</TableCell>
               <TableCell>
                 <Select
+                  name="app_permit_todolist"
+                  value={appData.app_permit_todolist || ""}
                   size="small"
                   disabled={!isEditMode}
-                  value={appData.app_permit_todolist || ""}
+                  onChange={handleChange}
                 >
                   {groupData.map((group, index) => (
                     <MenuItem key={index} value={group}>
@@ -321,9 +346,10 @@ function ViewApplication() {
               <TableCell>Edit Done Tasks:</TableCell>
               <TableCell>
                 <Select
+                  name="app_permit_done"
                   size="small"
                   disabled={!isEditMode}
-                  value={appData.app_permit_todolist || ""}
+                  value={appData.app_permit_done || ""}
                   onChange={handleChange}
                 >
                   {groupData.map((group, index) => (

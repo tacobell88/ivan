@@ -25,6 +25,7 @@ import ViewApplication from "./components/Application";
 import CreateApp from "./components/CreateApplication";
 import Plans from "./components/Plans";
 import TaskHomePage from "./components/TaskHomePage";
+import PlansTest from "./testingcomponents/PlansTest";
 
 function Component() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -83,14 +84,20 @@ function Component() {
       <BrowserRouter>
         {isLoggedIn ? <Header /> : <div> </div>}
         <Routes>
-          <Route path="/" element=<PublicRoute>{<Login />}</PublicRoute> />
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
           <Route
             path="/home"
             element={
               isLoggedIn && (
                 <ProtectedRoute>
-                  {" "}
-                  <HomePage />{" "}
+                  <HomePage />
                 </ProtectedRoute>
               )
             }
@@ -106,8 +113,7 @@ function Component() {
             element={
               isLoggedIn && (
                 <ProtectedRoute>
-                  {" "}
-                  <UserProfile />{" "}
+                  <UserProfile />
                 </ProtectedRoute>
               )
             }
@@ -117,21 +123,31 @@ function Component() {
             element={
               isLoggedIn && (
                 <ProtectedRoute>
-                  {" "}
-                  <ViewApplication />{" "}
+                  <ViewApplication />
                 </ProtectedRoute>
               )
             }
           />
           {/* <Route path="/app/:appId/plan" element={ isLoggedIn && <ProtectedRoute> <ViewPlan /> </ProtectedRoute>}/> */}
           {/* <Route path="/app/create-app" element={ isLoggedIn && <ProtectedRoute> <CreateApp /> </ProtectedRoute>}/> */}
+          {/* 
+            <Route
+            path="/app/:appId/plans"
+            element={
+              isLoggedIn && (
+                <ProtectedRoute>
+                  <Plans />
+                </ProtectedRoute>
+              )
+            }
+          />
+          */}
           <Route
             path="/app/:appId/plans"
             element={
               isLoggedIn && (
                 <ProtectedRoute>
-                  {" "}
-                  <Plans />{" "}
+                  <PlansTest />
                 </ProtectedRoute>
               )
             }
@@ -141,8 +157,7 @@ function Component() {
             element={
               isLoggedIn && (
                 <ProtectedRoute>
-                  {" "}
-                  <TaskHomePage />{" "}
+                  <TaskHomePage />
                 </ProtectedRoute>
               )
             }
