@@ -51,3 +51,5 @@ CREATE TABLE `applications` (
   PRIMARY KEY (`app_acronym`),
   UNIQUE KEY `app_acronym_UNIQUE` (`app_acronym`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+https://github.com/JFooCZ/TMS-0723/tree/main/TMS%20folder%20GG/client/app/components
