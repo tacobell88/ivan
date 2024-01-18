@@ -12,6 +12,7 @@ const {
   getAllPlans,
   getPlan,
   editPlan,
+  checkPermissions,
 } = require("../controllers/appController");
 
 // const {} = require('../controllers/planController');
@@ -31,5 +32,7 @@ router.route("/app/plan/createPlan").post(isAuthenticated, createPlan);
 router.route("/app/plan/getAllPlans").get(isAuthenticated, getAllPlans);
 router.route("/app/plan/getPlan").get(isAuthenticated, getPlan);
 router.route("/app/plan/editPlan").post(isAuthenticated, editPlan);
+
+router.route("/checkPerms").post(isAuthenticated, checkPermissions)
 
 module.exports = router;

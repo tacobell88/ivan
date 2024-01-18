@@ -188,7 +188,7 @@ exports.editApp = catchASyncError(async (req, res) => {
   });
 });
 
-// --------------------------------- START OF PLAN RELATED API ----------------------------------
+// ====================================START OF PLAN RELATED API ====================================
 // to create a plan for the specific application
 // *** ADDITIONAL INFO: user is only allowed to create a
 exports.createPlan = catchASyncError(async (req, res, next) => {
@@ -449,3 +449,56 @@ exports.getAppPermissions = catchASyncError(async (req, res) => {
 }); //
 // =============================== WORK IN PROGRESS ================================
 // --------------------------------- END OF TASK RELATED API ----------------------------------
+
+
+// GETTING APP PERMISSIONS FOR DIFFERENT TASK STATES SO THAT 
+exports.checkPermissions = catchASyncError(async(req, res, next) => {
+    
+    // to pass in the state of each page so that we can use that state to do checkgroup and render buttons as needed
+    console.log('this is query: ',req.query)
+    const { app_state } = req.body
+    const { app_acronym } = req.query
+    const username = req.user.username
+
+    let appPermission;
+    switch (app_state) {
+        case "create":
+            appPermission = "app_permit_create"
+            break;
+        case "open":
+            appPermission = "app_permit_open"
+            break;
+        case "todo":
+            appPermission = "app_permit_todolist"
+            break;
+        case "doing":
+            appPermission = "app_permit_doing"
+            break;
+        case "done":
+            appPermission = "app_permit_done"
+            break;
+    }
+    console.log(app_state)
+    console.log(app_acronym)
+    console.log('permission to check: ', appPermission);
+    const sql = `SELECT ${appPermission} FROM applications WHERE app_acronym =?`
+    const [rows, fields] = await db.execute(sql, [app_acronym])
+    console.log('what is this: ', rows[0][appPermission])
+    console.log(username)
+    
+    const userGroup = rows[0][appPermission]
+    console.log(userGroup);
+    const checkAuth = await Checkgroup(username, [userGroup]);
+      if (!checkAuth) {
+        throw next(
+          new ErrorHandler(
+            `${username} is not permitted`,
+            400
+          )
+        );
+      }
+    return res.status(200).json({
+        success: true,
+        message: `${username} is permitted`,
+    })
+})

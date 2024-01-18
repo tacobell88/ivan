@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Container from "./Container";
-import { Button, Grid, Typography } from "@mui/material";
+import { Button, Divider, Grid, Paper, Stack, Typography, styled } from "@mui/material";
+
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}));
 
 export default function TaskHomePage() {
   const { appId } = useParams();
@@ -37,6 +46,18 @@ export default function TaskHomePage() {
             </Button>
             <Button variant="contained">Add Task</Button>
           </Grid>
+          <Stack
+            direction="row"
+            divider={<Divider orientation="vertical" flexItem />}
+            spacing={2}
+            style={{marginTop : 40}}
+          >
+            <Item>Open State</Item>
+            <Item>To Do State</Item>
+            <Item>Doing State</Item>
+            <Item>Done State</Item>
+            <Item>Closed State</Item>
+          </Stack>
         </Grid>
       </Container>
     </div>

@@ -39,6 +39,29 @@ function PlansTest() {
   // const [isEditMode, setIsEditMode] = useState();
   const [isEditID, setIsEditID] = useState(-1);
 
+  const [isPermitted, setIsPermitted] = useState()
+
+
+  // implement a useEffect to check if user is permitted to view buttons 
+  const checkPermissions = async () => {
+    try {
+      const response = await axios.post('http://localhost:8000/checkPerms', {
+        app_state : "create",
+      },{
+        params: { app_acronym: appId },
+      })
+      console.log(response)
+      if (response.data.success === true) {
+        setIsPermitted(true);
+      }
+    } catch (error) {
+      if (error.response.data.success === false ) {
+        setIsPermitted(false);
+      }
+      console.log('Error checking permissions: ', error)
+    }
+  }
+
   const fetchAllPlans = async () => {
     setPlanData([]);
     try {
@@ -50,24 +73,7 @@ function PlansTest() {
       );
       console.log(response.data.data);
       if (response) {
-        // const formatPlanStartDate = dayjs(
-        //   response.data.data.plan_startdate,
-        //   "DD-MM-YYYY"
-        // );
-        // const formatPlanEndDate = dayjs(
-        //   response.data.data.plan_enddate,
-        //   "DD-MM-YYYY"
-        // );
-        // setPlanData(
-        //   response.data.data.map((plans) => ({
-        //     ...plans,
-        //     plan_startdate: formatStartDate,
-        //     plan_enddate: formatEndDate,
-        //   }))
-        // );
         console.log(response.data.data);
-        // setPlanStartDate(formatPlanStartDate);
-        // setPlanEndDate(formatPlanEndDate);
         setPlanData(response.data.data);
       }
     } catch (error) {
@@ -78,19 +84,27 @@ function PlansTest() {
   };
 
   useEffect(() => {
+    checkPermissions();
     fetchAllPlans();
   }, []);
 
   // function to handle when start date changes
   const handleCreateStartDateChange = (startDateValue) => {
-    console.log("Start Date Value: ", startDateValue);
     // handling the way date is parsed
-    setPlanCreateStartDate(startDateValue.format("DD-MM-YYYY"));
+    if (startDateValue) {
+      setPlanCreateStartDate(startDateValue.format("DD-MM-YYYY"));
+    } else {
+      setPlanCreateStartDate(null);
+    }
   };
 
   // function to handle when end date changes
   const handleCreateEndDateChange = (endDateValue) => {
-    setPlanCreateEndDate(endDateValue.format("DD-MM-YYYY"));
+    if (endDateValue){
+      setPlanCreateEndDate(endDateValue.format("DD-MM-YYYY"));
+    } else {
+      setPlanCreateEndDate(null)
+    }
   };
 
   const handlePlanCreateSubmit = async (e) => {
@@ -115,13 +129,6 @@ function PlansTest() {
       setPlanCreateEndDate(null);
       handleAlerts("Plan created successfully", true);
       fetchAllPlans();
-      //   if (response) {
-      //     setPlanCreateStartDate("");
-      //     setPlanCreateEndDate("");
-      //     setPlanCreateName("");
-      //     handleAlerts("Plan created successfully", true);
-      //     fetchAllPlans();
-      //   }
     } catch (error) {
       console.log("Error in create plan submit : ", error);
       const errMessage = error.response.data.errMessage;
@@ -130,13 +137,22 @@ function PlansTest() {
   };
 
   const handlePlanStartDateChange = (planStartDateValue) => {
-    console.log("Start Date Value: ", planStartDateValue.format("DD-MM-YYYY"));
-    setPlanStartDateChange(planStartDateValue.format("DD-MM-YYYY"));
+    //console.log("Start Date Value: ", planStartDateValue.format("DD-MM-YYYY"));
+    if(planStartDateValue) {
+      setPlanStartDateChange(planStartDateValue.format("DD-MM-YYYY"));
+    } else {
+      setPlanStartDateChange(null)
+    }
   };
 
   const handlePlanEndDateChange = (planEndDateValue) => {
-    console.log("End Date Value: ", planEndDateValue.format("DD-MM-YYYY"));
-    setPlanEndDateChange(planEndDateValue.format("DD-MM-YYYY"));
+    //console.log("End Date Value: ", planEndDateValue.format("DD-MM-YYYY"));
+    if(planEndDateValue){
+      setPlanEndDateChange(planEndDateValue.format("DD-MM-YYYY"));
+    } else {
+      setPlanEndDateChange(null)
+    }
+    
   };
 
   const handleEditClick = (rowId) => {
@@ -164,14 +180,16 @@ function PlansTest() {
         };
         console.log(newPlanData);
 
-        // const response = await axios.post("http://localhost:8000/");
+        const response = await axios.post("http://localhost:8000/app/plan/editPlan", newPlanData);
+        handleAlerts('Plan updated successfully',true)
+        setIsEditID(-1);
+        fetchAllPlans();
       } catch (error) {
         console.log(error);
+        const errMessage = error.response.data.errMessage;
+        handleAlerts(errMessage, false)
       }
     }
-
-    // console.log(editedPlanName);
-    //console.log(planData.plan_mvp_name);
   };
 
   const handleCancelClick = async (e) => {
@@ -186,10 +204,8 @@ function PlansTest() {
     console.log(
       `Plan app acronym: ${appId} Updated plan name: ${planCreateName} Updated start date: ${planCreateStartDate} Updated end date: ${planCreateEndDate}`
     );
-    // console.log("Updated plan name: ", planCreateName);
-    // console.log("Updated start date: ", planCreateStartDate);
-    //console.log("Updated end date: ", planCreateEndDate);
-  }, [planCreateName, planCreateEndDate, planCreateStartDate]);
+    console.log(`Is the user permitted: ${isPermitted}`)
+  }, [planCreateName, planCreateEndDate, planCreateStartDate, isPermitted]);
 
   return (
     <Container>
@@ -199,6 +215,7 @@ function PlansTest() {
         justifyContent="flex-end"
         style={{ marginTop: 45 }}
       >
+      {isPermitted ? 
         <form onSubmit={handlePlanCreateSubmit}>
           <TextField
             name="plan_mvp_name"
@@ -242,6 +259,8 @@ function PlansTest() {
             Add Plan
           </Button>
         </form>
+      : <></>}
+        
       </Grid>
       <Grid>
         <Paper
@@ -314,7 +333,7 @@ function PlansTest() {
                             Save
                           </Button>
                         </>
-                      ) : (
+                      ) : ( isPermitted && (
                         <Button
                           onClick={() => handleEditClick(index)}
                           style={{ alignItems: "center" }}
@@ -322,6 +341,7 @@ function PlansTest() {
                         >
                           Edit
                         </Button>
+                      )
                       )}
                     </TableCell>
                   </TableRow>
