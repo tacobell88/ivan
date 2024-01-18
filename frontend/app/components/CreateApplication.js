@@ -204,7 +204,9 @@ function CreateApp() {
               </TableRow>
             </TableHead>
             <TableRow>
-              <TableCell style={{ paddingRight: 10 }}>Acronym:</TableCell>
+              <TableCell style={{ paddingRight: 10, width: 100 }}>
+                Acronym:
+              </TableCell>
               <TableCell>
                 <TextField
                   name="app_acronym"
@@ -215,7 +217,7 @@ function CreateApp() {
                 />
               </TableCell>
               <TableCell>Create Tasks:</TableCell>
-              <TableCell>
+              <TableCell style={{ width: 150 }}>
                 <Select
                   name="app_permit_create"
                   value={appData.app_permit_create}

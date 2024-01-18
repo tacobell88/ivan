@@ -193,6 +193,10 @@ exports.editApp = catchASyncError(async (req, res) => {
 // *** ADDITIONAL INFO: user is only allowed to create a
 exports.createPlan = catchASyncError(async (req, res, next) => {
   // app_acronym should be sent back to the backend so that we know which app we are creating plans for
+
+  console.log("Creating Plan");
+  console.log(req.body);
+  console.log(req.query);
   var { plan_mvp_name, plan_startdate, plan_enddate } = req.body;
 
   const { plan_app_acronym } = req.query;
@@ -259,7 +263,10 @@ exports.createPlan = catchASyncError(async (req, res, next) => {
   ]);
   if (!checkPlanAuth) {
     throw next(
-      new ErrorHandler(`${username} is not allowed to create plans`, 400)
+      new ErrorHandler(
+        `${username} is not allowed to create plans for ${plan_app_acronym}`,
+        400
+      )
     );
   }
 
@@ -339,11 +346,11 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
   const username = req.user.username;
 
   if (!plan_startdate) {
-    plan_startdate = null;
+    throw next(new ErrorHandler("Start date is mandatory", 400));
   }
 
   if (!plan_enddate) {
-    plan_enddate = null;
+    throw next(new ErrorHandler("End date is mandatory", 400));
   }
 
   // get user's username and get the roles of the user
@@ -366,29 +373,35 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
 
   // logging the permission result
   console.log("This is query result of permsql: ", [
-    permSqlRows.app_permit_open,
+    permSqlRows[0].app_permit_open,
   ]);
 
   // checking if user that is trying to create the plan
   const checkPlanAuth = await Checkgroup(username, [
-    permSqlRows.app_permit_open,
+    permSqlRows[0].app_permit_open,
   ]);
   if (!checkPlanAuth) {
     throw next(
-      new ErrorHandler(`${username} is not allowed to create plans`, 400)
+      new ErrorHandler(
+        `${username} is not allowed to edit plans for ${plan_app_acronym}`,
+        400
+      )
     );
   }
 
-  const sql = `UPDATE plans SET plan_startdate =?, plan_enddate WHERE plan_mvp_name =?`;
+  const sql = `UPDATE plans SET plan_startdate =?, plan_enddate =? WHERE plan_mvp_name =? AND plan_app_acronym =?`;
   const [rows, fields] = await db.execute(sql, [
     plan_startdate,
     plan_enddate,
     plan_mvp_name,
+    plan_app_acronym,
   ]);
 
-  if (!rows.length) {
-    throw next(new ErrorHandler("Failed to edit plan", 400));
-  }
+  // console.log(rows[0]);
+
+  // if (!rows.length) {
+  //   throw next(new ErrorHandler("Failed to edit plan", 400));
+  // }
 
   return res.status(200).json({
     success: true,

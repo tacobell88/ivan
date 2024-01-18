@@ -148,7 +148,7 @@ function ViewApplication() {
       ...prevData,
       app_startdate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log(newValue.format("DD-MM-YYYY")); // Format date
+    // console.log(newValue.format("DD-MM-YYYY")); // Format date
     console.log(
       "This is trying to see what is app data for start date: ",
       appData.app_startdate
@@ -161,7 +161,7 @@ function ViewApplication() {
       ...prevData,
       app_enddate: newValue ? newValue.format("DD-MM-YYYY") : "",
     }));
-    console.log(newValue.format("DD-MM-YYYY"));
+    // console.log(newValue.format("DD-MM-YYYY"));
     console.log(
       "This is trying to see what is app data for end date: ",
       appData.app_enddate
@@ -171,7 +171,6 @@ function ViewApplication() {
   const handleSaveClick = async () => {
     // Implement API call to update the data
     // axios.post('API_ENDPOINT', updatedData);
-    const updatedData = {};
     try {
       const response = await axios.post(
         "http://localhost:8000/app/editApp",
@@ -220,7 +219,7 @@ function ViewApplication() {
               <TableCell>
                 <TextField
                   name="app_acronym"
-                  value={appData ? appData.app_acronym : ""}
+                  value={appData && appData ? appData.app_acronym : ""}
                   size="small"
                   disabled={true}
                 />
@@ -230,7 +229,7 @@ function ViewApplication() {
                 <Select
                   name="app_permit_create"
                   size="small"
-                  value={appData.app_permit_create || ""}
+                  value={(appData && appData.app_permit_create) || ""}
                   disabled={!isEditMode}
                   onChange={handleChange}
                 >
@@ -247,7 +246,7 @@ function ViewApplication() {
               <TableCell>
                 <TextField
                   name="app_rnumber"
-                  value={appData ? appData.app_rnumber : ""}
+                  value={appData && appData ? appData.app_rnumber : ""}
                   size="small"
                   disabled={true}
                 />
@@ -256,7 +255,7 @@ function ViewApplication() {
               <TableCell>
                 <Select
                   name="app_permit_open"
-                  value={appData.app_permit_open || ""}
+                  value={(appData && appData.app_permit_open) || ""}
                   size="small"
                   disabled={!isEditMode}
                   onChange={handleChange}

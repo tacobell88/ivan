@@ -1,32 +1,35 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const { isAuthenticated,
-        isAuthRole } = require('../middlewares/authMidware');
+const { isAuthenticated, isAuthRole } = require("../middlewares/authMidware");
 
-const { createApp,
-        getAllApp,
-        getApp,
-        editApp, 
-        createPlan,
-        getAllPlans,
-        getPlan} = require('../controllers/appController');
+const {
+  createApp,
+  getAllApp,
+  getApp,
+  editApp,
+  createPlan,
+  getAllPlans,
+  getPlan,
+  editPlan,
+} = require("../controllers/appController");
 
 // const {} = require('../controllers/planController');
 
 // const {} = require('../controllers/taskController');
 
-
 // routes relating to app
-router.route('/app/createApp').post(isAuthenticated, isAuthRole("pl"), createApp);
-router.route('/app/showAllApps').get(isAuthenticated, getAllApp);
-router.route('/app/showApp').get(isAuthenticated, getApp);
-router.route('/app/editApp').post(isAuthenticated, editApp);
+router
+  .route("/app/createApp")
+  .post(isAuthenticated, isAuthRole("pl"), createApp);
+router.route("/app/showAllApps").get(isAuthenticated, getAllApp);
+router.route("/app/showApp").get(isAuthenticated, getApp);
+router.route("/app/editApp").post(isAuthenticated, editApp);
 
 //routes relating to plan
-router.route('/app/plan/createPlan').post(isAuthenticated, createPlan);
-router.route('/app/plan/getAllPlans').get(isAuthenticated, getAllPlans);
-router.route('/app/plan/getPlan').get(isAuthenticated, getPlan);
-
+router.route("/app/plan/createPlan").post(isAuthenticated, createPlan);
+router.route("/app/plan/getAllPlans").get(isAuthenticated, getAllPlans);
+router.route("/app/plan/getPlan").get(isAuthenticated, getPlan);
+router.route("/app/plan/editPlan").post(isAuthenticated, editPlan);
 
 module.exports = router;
