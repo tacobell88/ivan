@@ -26,6 +26,7 @@ import CreateApp from "./components/CreateApplication";
 import Plans from "./components/Plans";
 import TaskHomePage from "./components/TaskHomePage";
 import PlansTest from "./testingcomponents/PlansTest";
+import CreateTask from "./components/CreateTask";
 
 function Component() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -158,6 +159,16 @@ function Component() {
               isLoggedIn && (
                 <ProtectedRoute>
                   <TaskHomePage />
+                </ProtectedRoute>
+              )
+            }
+          />
+          <Route
+            path="/app/:appId/task/create"
+            element={
+              isLoggedIn && (
+                <ProtectedRoute>
+                  <CreateTask />
                 </ProtectedRoute>
               )
             }

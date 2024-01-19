@@ -2,6 +2,7 @@ const db = require("../config/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const { Checkgroup } = require("./groupController");
+const dayjs = require("dayjs");
 
 function validRnumber(str) {
   const validRegex = new RegExp(/^[1-9]\d*$/);
@@ -339,6 +340,24 @@ exports.getPlan = catchASyncError(async (req, res, next) => {
   });
 });
 
+exports.getPlanNames = catchASyncError(async (req, res, next) => {
+  const { plan_app_acronym } = req.query;
+  console.log(req.query);
+
+  const sql = `SELECT plan_mvp_name FROM plans WHERE plan_app_acronym =?`;
+  const [rows, fields] = await db.execute(sql, [plan_app_acronym]);
+
+  if (rows.length === 0) {
+    throw next(new ErrorHandler(`There are no plans for ${plan_app_acronym}`));
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Plan name retrieved successfully",
+    data: rows,
+  });
+});
+
 exports.editPlan = catchASyncError(async (req, res, next) => {
   const { plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym } =
     req.body;
@@ -410,32 +429,137 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
 });
 
 // --------------------------------- END OF PLAN RELATED API ----------------------------------
+// --------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
 // --------------------------------- START OF TASK RELATED API ----------------------------------
 //
 //
 // creating task API
 exports.createTask = catchASyncError(async (req, res, next) => {
-  const { task_name, task_description, task_plan, task_app_acronym } = req.body;
-
+  const { task_name, task_description, task_plan, task_notes } = req.body;
+  const { task_app_acronym } = req.query;
   // getting current user's username to assign it as task owner
   const task_owner = req.user.username;
+  const task_creator = task_owner;
+  const task_status = "open";
 
   // check if task name is empty or not
   if (!task_name || task_name.trim() === "") {
     throw next(new ErrorHandler("Task name is required", 400));
   }
 
+  if (!validateInput(task_name)) {
+    throw next(
+      new ErrorHandler(
+        "Task name has to have less than 45 characters and no special symbols",
+        400
+      )
+    );
+  }
+
+  const permSql = `SELECT app_permit_create, app_rnumber FROM applications where app_acronym =?`;
+  const [permSqlRows, permSqlFields] = await db.execute(permSql, [
+    task_app_acronym,
+  ]);
+
+  // could be an unneccessary check because app_permits cannot accept null values
+  if (permSqlRows.length === 0) {
+    return next(
+      new ErrorHandler(
+        `There are no permissions granted for ${task_app_acronym}`,
+        400
+      )
+    );
+  }
+
+  // logging the permission result
+  console.log("This is query result of permsql: ", [
+    permSqlRows[0].app_permit_create,
+  ]);
+
+  // checking if user that is trying to create the plan
+  const checkPlanAuth = await Checkgroup(task_owner, [
+    permSqlRows[0].app_permit_create,
+  ]);
+  if (!checkPlanAuth) {
+    throw next(
+      new ErrorHandler(
+        `${task_owner} is not allowed to create task for ${task_app_acronym}`,
+        400
+      )
+    );
+  }
+
   // getting current date, and time for audit trail
+  // time will displayed like this : 19-01-2024 11:25:55
+  const currentDate = dayjs();
+  const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
+  const task_createdate = currentDate.format("DD-MM-YYYY");
+
+  const notesDelimiter = " ================================ ";
+  //const auditTrailFormat = notesDelimiter + formattedDate + notesDelimiter;
+
+  const auditTrailLog = `\n${notesDelimiter} Task created on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n ================================================================================================ \n`;
+
+  const task_id = `${task_app_acronym}_${permSqlRows[0].app_rnumber + 1}`;
+  const newRnum = permSqlRows[0].app_rnumber + 1;
+
+  const taskSQL = `INSERT INTO tasks VALUES(?,?,?,?,?,?,?,?,?,?)`;
+
+  console.log(
+    task_name,
+    task_id,
+    task_description,
+    task_status,
+    task_owner,
+    task_creator,
+    task_createdate,
+    auditTrailLog,
+    task_plan,
+    task_app_acronym
+  );
+
+  const [taskRows, taskFields] = await db.execute(taskSQL, [
+    task_name,
+    task_id,
+    task_description,
+    task_status,
+    task_owner,
+    task_creator,
+    task_createdate,
+    auditTrailLog,
+    task_plan,
+    task_app_acronym,
+  ]);
+  console.log(newRnum);
+  // update application R number
+  const updateRnumSQL = `UPDATE applications SET app_rnumber=? WHERE app_acronym=?`;
+  const [rnumRows, rnumFields] = await db.execute(updateRnumSQL, [
+    newRnum,
+    task_app_acronym,
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    message: "Task has been added successfully",
+  });
 });
 
 exports.getTask = catchASyncError(async (req, res, next) => {
-  const { app_acronym } = req.body;
+  const { task_app_acronym } = req.query;
 
   const sql = `SELECT * FROM tasks WHERE task_app_acronym =?`;
-  const [rows, fields] = await db.execute(sql, [app_acronym]);
+  const [rows, fields] = await db.execute(sql, [task_app_acronym]);
+
+  return res.status(200).json({
+    success: true,
+    message: `Tasks for ${task_app_acronym} retrieved successfully`,
+    data: rows,
+  });
 });
 
+exports.editTask = catchASyncError(async (req, res, next) => {});
 // getting user groups for app permissions for different states for ***TASK***
 // Open state app permissions - PM
 // ToDo state app permssions - Dev
@@ -446,59 +570,79 @@ exports.getAppPermissions = catchASyncError(async (req, res) => {
   const { task_app_acronym, task_state } = req.body; //
 
   //sql statement to get the ncessary permissions for the app
+  // let taskPerms
+  // switch (task_state) {
+  //   case "open" :
+  //     taskPerms =
+
+  // }
 }); //
 // =============================== WORK IN PROGRESS ================================
 // --------------------------------- END OF TASK RELATED API ----------------------------------
 
+// GETTING APP PERMISSIONS FOR DIFFERENT TASK STATES SO THAT
+exports.checkPermissions = catchASyncError(async (req, res, next) => {
+  // to pass in the state of each page so that we can use that state to do checkgroup and render buttons as needed
+  console.log("this is query: ", req.query);
+  const { app_state } = req.body;
+  const { app_acronym } = req.query;
+  const username = req.user.username;
 
-// GETTING APP PERMISSIONS FOR DIFFERENT TASK STATES SO THAT 
-exports.checkPermissions = catchASyncError(async(req, res, next) => {
-    
-    // to pass in the state of each page so that we can use that state to do checkgroup and render buttons as needed
-    console.log('this is query: ',req.query)
-    const { app_state } = req.body
-    const { app_acronym } = req.query
-    const username = req.user.username
+  let appPermission;
+  switch (app_state) {
+    case "create":
+      appPermission = "app_permit_create";
+      break;
+    case "open":
+      appPermission = "app_permit_open";
+      break;
+    case "todo":
+      appPermission = "app_permit_todolist";
+      break;
+    case "doing":
+      appPermission = "app_permit_doing";
+      break;
+    case "done":
+      appPermission = "app_permit_done";
+      break;
+  }
+  console.log("this is the state to check: ", app_state);
+  console.log("app acronym to check: ", app_acronym);
+  console.log("permission to check: ", appPermission);
+  const sql = `SELECT ${appPermission} FROM applications WHERE app_acronym =?`;
+  const [rows, fields] = await db.execute(sql, [app_acronym]);
+  console.log(
+    "usergroup permissions retrieved from db: ",
+    rows[0][appPermission]
+  );
 
-    let appPermission;
-    switch (app_state) {
-        case "create":
-            appPermission = "app_permit_create"
-            break;
-        case "open":
-            appPermission = "app_permit_open"
-            break;
-        case "todo":
-            appPermission = "app_permit_todolist"
-            break;
-        case "doing":
-            appPermission = "app_permit_doing"
-            break;
-        case "done":
-            appPermission = "app_permit_done"
-            break;
-    }
-    console.log(app_state)
-    console.log(app_acronym)
-    console.log('permission to check: ', appPermission);
-    const sql = `SELECT ${appPermission} FROM applications WHERE app_acronym =?`
-    const [rows, fields] = await db.execute(sql, [app_acronym])
-    console.log('what is this: ', rows[0][appPermission])
-    console.log(username)
-    
-    const userGroup = rows[0][appPermission]
-    console.log(userGroup);
-    const checkAuth = await Checkgroup(username, [userGroup]);
-      if (!checkAuth) {
-        throw next(
-          new ErrorHandler(
-            `${username} is not permitted`,
-            400
-          )
-        );
-      }
-    return res.status(200).json({
-        success: true,
-        message: `${username} is permitted`,
-    })
-})
+  const userGroup = rows[0][appPermission];
+  console.log(`Username: ${username}, Usergroup: ${userGroup}`);
+  const checkAuth = await Checkgroup(username, [userGroup]);
+  if (!checkAuth) {
+    throw next(new ErrorHandler(`${username} is not permitted`, 400));
+  }
+  return res.status(200).json({
+    success: true,
+    message: `${username} is permitted`,
+  });
+});
+
+//working as expected
+exports.testAuditTrail = catchASyncError(async (req, res, next) => {
+  const currentDate = dayjs();
+  const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
+  const task_createdate = currentDate.format("DD-MM-YYYY");
+
+  const newLine = "\n";
+  const notesDelimiter = " ================================ ";
+  const auditTrailFormat =
+    newLine + notesDelimiter + formattedDate + notesDelimiter;
+
+  console.log(auditTrailFormat);
+  console.log(task_createdate);
+  return res.status(200).json({
+    success: true,
+    message: formattedDate,
+  });
+});

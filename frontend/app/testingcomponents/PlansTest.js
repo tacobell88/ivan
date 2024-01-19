@@ -39,28 +39,31 @@ function PlansTest() {
   // const [isEditMode, setIsEditMode] = useState();
   const [isEditID, setIsEditID] = useState(-1);
 
-  const [isPermitted, setIsPermitted] = useState()
+  const [isPermitted, setIsPermitted] = useState();
 
-
-  // implement a useEffect to check if user is permitted to view buttons 
+  // implement a useEffect to check if user is permitted to view buttons
   const checkPermissions = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/checkPerms', {
-        app_state : "create",
-      },{
-        params: { app_acronym: appId },
-      })
-      console.log(response)
+      const response = await axios.post(
+        "http://localhost:8000/checkPerms",
+        {
+          app_state: "open",
+        },
+        {
+          params: { app_acronym: appId },
+        }
+      );
+      console.log(response);
       if (response.data.success === true) {
         setIsPermitted(true);
       }
     } catch (error) {
-      if (error.response.data.success === false ) {
+      if (error.response.data.success === false) {
         setIsPermitted(false);
       }
-      console.log('Error checking permissions: ', error)
+      console.log("Error checking permissions: ", error);
     }
-  }
+  };
 
   const fetchAllPlans = async () => {
     setPlanData([]);
@@ -100,10 +103,10 @@ function PlansTest() {
 
   // function to handle when end date changes
   const handleCreateEndDateChange = (endDateValue) => {
-    if (endDateValue){
+    if (endDateValue) {
       setPlanCreateEndDate(endDateValue.format("DD-MM-YYYY"));
     } else {
-      setPlanCreateEndDate(null)
+      setPlanCreateEndDate(null);
     }
   };
 
@@ -138,21 +141,20 @@ function PlansTest() {
 
   const handlePlanStartDateChange = (planStartDateValue) => {
     //console.log("Start Date Value: ", planStartDateValue.format("DD-MM-YYYY"));
-    if(planStartDateValue) {
+    if (planStartDateValue) {
       setPlanStartDateChange(planStartDateValue.format("DD-MM-YYYY"));
     } else {
-      setPlanStartDateChange(null)
+      setPlanStartDateChange(null);
     }
   };
 
   const handlePlanEndDateChange = (planEndDateValue) => {
     //console.log("End Date Value: ", planEndDateValue.format("DD-MM-YYYY"));
-    if(planEndDateValue){
+    if (planEndDateValue) {
       setPlanEndDateChange(planEndDateValue.format("DD-MM-YYYY"));
     } else {
-      setPlanEndDateChange(null)
+      setPlanEndDateChange(null);
     }
-    
   };
 
   const handleEditClick = (rowId) => {
@@ -180,14 +182,17 @@ function PlansTest() {
         };
         console.log(newPlanData);
 
-        const response = await axios.post("http://localhost:8000/app/plan/editPlan", newPlanData);
-        handleAlerts('Plan updated successfully',true)
+        const response = await axios.post(
+          "http://localhost:8000/app/plan/editPlan",
+          newPlanData
+        );
+        handleAlerts("Plan updated successfully", true);
         setIsEditID(-1);
         fetchAllPlans();
       } catch (error) {
         console.log(error);
         const errMessage = error.response.data.errMessage;
-        handleAlerts(errMessage, false)
+        handleAlerts(errMessage, false);
       }
     }
   };
@@ -204,7 +209,7 @@ function PlansTest() {
     console.log(
       `Plan app acronym: ${appId} Updated plan name: ${planCreateName} Updated start date: ${planCreateStartDate} Updated end date: ${planCreateEndDate}`
     );
-    console.log(`Is the user permitted: ${isPermitted}`)
+    console.log(`Is the user permitted: ${isPermitted}`);
   }, [planCreateName, planCreateEndDate, planCreateStartDate, isPermitted]);
 
   return (
@@ -215,52 +220,53 @@ function PlansTest() {
         justifyContent="flex-end"
         style={{ marginTop: 45 }}
       >
-      {isPermitted ? 
-        <form onSubmit={handlePlanCreateSubmit}>
-          <TextField
-            name="plan_mvp_name"
-            value={planCreateName}
-            label="Plan Name"
-            size="small"
-            style={{ marginRight: 20 }}
-            onChange={(e) => setPlanCreateName(e.target.value)}
-          ></TextField>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              value={
-                planCreateStartDate
-                  ? dayjs(planCreateStartDate, "DD-MM-YYYY")
-                  : null
-              }
-              label="Start Date"
-              sx={{ width: 180, marginRight: 2 }}
-              slotProps={{ textField: { size: "small" } }}
-              onChange={handleCreateStartDateChange}
-            ></DatePicker>
-          </LocalizationProvider>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              value={
-                planCreateEndDate
-                  ? dayjs(planCreateEndDate, "DD-MM-YYYY")
-                  : null
-              }
-              label="End Date"
-              sx={{ width: 180, marginRight: 2 }}
-              slotProps={{ textField: { size: "small" } }}
-              onChange={handleCreateEndDateChange}
-            ></DatePicker>
-          </LocalizationProvider>
-          <Button
-            type="submit"
-            variant="contained"
-            style={{ marginRight: 100 }}
-          >
-            Add Plan
-          </Button>
-        </form>
-      : <></>}
-        
+        {isPermitted ? (
+          <form onSubmit={handlePlanCreateSubmit}>
+            <TextField
+              name="plan_mvp_name"
+              value={planCreateName}
+              label="Plan Name"
+              size="small"
+              style={{ marginRight: 20 }}
+              onChange={(e) => setPlanCreateName(e.target.value)}
+            ></TextField>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                value={
+                  planCreateStartDate
+                    ? dayjs(planCreateStartDate, "DD-MM-YYYY")
+                    : null
+                }
+                label="Start Date"
+                sx={{ width: 180, marginRight: 2 }}
+                slotProps={{ textField: { size: "small" } }}
+                onChange={handleCreateStartDateChange}
+              ></DatePicker>
+            </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                value={
+                  planCreateEndDate
+                    ? dayjs(planCreateEndDate, "DD-MM-YYYY")
+                    : null
+                }
+                label="End Date"
+                sx={{ width: 180, marginRight: 2 }}
+                slotProps={{ textField: { size: "small" } }}
+                onChange={handleCreateEndDateChange}
+              ></DatePicker>
+            </LocalizationProvider>
+            <Button
+              type="submit"
+              variant="contained"
+              style={{ marginRight: 100 }}
+            >
+              Add Plan
+            </Button>
+          </form>
+        ) : (
+          <></>
+        )}
       </Grid>
       <Grid>
         <Paper
@@ -333,15 +339,16 @@ function PlansTest() {
                             Save
                           </Button>
                         </>
-                      ) : ( isPermitted && (
-                        <Button
-                          onClick={() => handleEditClick(index)}
-                          style={{ alignItems: "center" }}
-                          startIcon={<CreateIcon />}
-                        >
-                          Edit
-                        </Button>
-                      )
+                      ) : (
+                        isPermitted && (
+                          <Button
+                            onClick={() => handleEditClick(index)}
+                            style={{ alignItems: "center" }}
+                            startIcon={<CreateIcon />}
+                          >
+                            Edit
+                          </Button>
+                        )
                       )}
                     </TableCell>
                   </TableRow>
