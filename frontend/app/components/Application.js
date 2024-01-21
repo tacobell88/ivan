@@ -20,8 +20,8 @@ import dayjs from "dayjs";
 import Container from "./Container";
 import GlobalContext from "../assets/GlobalContext";
 
-function ViewApplication() {
-  const { appId } = useParams();
+function ViewApplication(props) {
+  // const { appId } = useParams();
   const [appData, setAppData] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [groupData, setGroupData] = useState([]);
@@ -30,10 +30,11 @@ function ViewApplication() {
   const [endDate, setEndDate] = useState("");
   const navigate = useNavigate();
   const { handleAlerts } = useContext(GlobalContext);
+  const appId = props.appId;
 
   console.log(
     "This is appId taken from HomePage to be used on ViewApplication: ",
-    appId
+    props.appId
   );
 
   // This useEffect is running on view applciation page to verify if the user is PL to see edit button
@@ -67,9 +68,13 @@ function ViewApplication() {
     );
     const fetchAppData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/app/showApp", {
+        // const response = await axios.get("http://localhost:8000/app/showApp", {
+        //   // app_acronym: appId,
+        //   params: { app_acronym: appId }, //use params id here
+        // });
+        const response = await axios.post("http://localhost:8000/app/showApp", {
           // app_acronym: appId,
-          params: { app_acronym: appId }, //use params id here
+          app_acronym: appId, //use params id here
         });
         console.log(
           "App info taken from fetchAppData in ViewApplication: ",

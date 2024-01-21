@@ -19,6 +19,7 @@ import axios from "axios";
 import MuiLink from "@mui/material/Link";
 import CreateApp from "./CreateApplication";
 import GlobalContext from "../assets/GlobalContext";
+import ViewApplication from "./Application";
 
 function HomePage() {
   const [appData, setAppData] = useState();
@@ -26,6 +27,10 @@ function HomePage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { handleAlerts } = useContext(GlobalContext);
+
+  // for view application details modal
+  const [selectedAppId, setSelectedAppId] = useState(null); // New state to track the selected appId
+  const [viewModalOpen, setViewModalOpen] = useState(false); // State to control the visibility of the ViewApplication modal
 
   // useEffect in place to check user group to see if it's PM
   // only PM is allowed to have 'Add Application' button
@@ -78,9 +83,19 @@ function HomePage() {
     setOpen(true);
   };
 
+  // const handleView = (appId) => {
+  //   navigate(`/app/${appId}`);
+  // };
+
   const handleView = (appId) => {
-    navigate(`/app/${appId}`);
+    setSelectedAppId(appId); // Set the selected appId
+    setViewModalOpen(true); // Open the modal
   };
+
+  const handleCloseViewModal = () => {
+    setViewModalOpen(false);
+  };
+
 
   const handleKanban = (appId) => {
     navigate(`/app/${appId}/kanban`);
@@ -90,6 +105,10 @@ function HomePage() {
     fetchAppData();
     setOpen(false);
   };
+  
+  useEffect(() => {
+    console.log('This is appId to be passed onto viewApplication: ', selectedAppId)
+  }, [selectedAppId])
 
   return (
     <Page title="Home Page">
@@ -174,8 +193,17 @@ function HomePage() {
                       ))}
                   </TableBody>
                 </TableContainer>
+                {/* <Modal open={viewModalOpen} onClose={handleCloseViewModal}>
+                              {selectedAppId && <ViewApplication appId={selectedAppId} />}
+                            </Modal> */}
+                <Modal open={viewModalOpen} onClose={handleCloseViewModal}>
+                            <ViewApplication appId={selectedAppId} />
+                  {/* <div style={{ backgroundColor: 'white', padding: '20px' }}>
+                    Test Modal Content
+                  </div> */}
+                </Modal>
               </Box>
-            </Paper>
+            </Paper>    
           </Grid>
         </Grid>
       </div>

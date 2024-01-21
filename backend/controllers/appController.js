@@ -134,8 +134,8 @@ exports.getAllApp = catchASyncError(async (req, res, next) => {
 });
 
 exports.getApp = catchASyncError(async (req, res, next) => {
-  const { app_acronym } = req.query;
-  //const { app_acronym } = req.body;
+//   const { app_acronym } = req.query;
+  const { app_acronym } = req.body;
 
   const sql =
     "SELECT app_acronym, app_description, app_rnumber, app_startdate, app_enddate, app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing, app_permit_done FROM applications WHERE app_acronym = ?";
@@ -547,7 +547,9 @@ exports.createTask = catchASyncError(async (req, res, next) => {
 });
 
 exports.getTask = catchASyncError(async (req, res, next) => {
-  const { task_app_acronym } = req.query;
+//   const { task_app_acronym } = req.query;
+    const {task_app_acronym} = req.body
+
 
   const sql = `SELECT * FROM tasks WHERE task_app_acronym =?`;
   const [rows, fields] = await db.execute(sql, [task_app_acronym]);
@@ -558,6 +560,33 @@ exports.getTask = catchASyncError(async (req, res, next) => {
     data: rows,
   });
 });
+
+exports.getTaskInfo = catchASyncError(async(req,res,next) => {
+    const{task_id} = req.body;
+
+    const sql = `SELECT * FROM tasks WHERE task_id =?`
+
+    const [rows, fields] = await db.execute(sql, [task_id]);
+
+  return res.status(200).json({
+    success: true,
+    message: `Task info for ${task_id} retrieved successfully`,
+    data: rows,
+  });
+})
+
+exports.getTaskPlans = catchASyncError(async(req,res,next) => {
+    const {app_acronym} = req.body;
+
+    const sql = `SELECT plan_mvp_name FROM plans WHERE plan_app_acronym=?`
+
+    const [rows, fields] = await db.execute(sql, [app_acronym]);
+    return res.status(200).json({
+        success: true,
+        message: `Plans for ${app_acronym} retrieved successfully`,
+        data: rows,
+      });
+})
 
 exports.editTask = catchASyncError(async (req, res, next) => {});
 // getting user groups for app permissions for different states for ***TASK***
