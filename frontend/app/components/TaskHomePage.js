@@ -37,17 +37,31 @@ export default function TaskHomePage() {
 
   // for task related data
   const [taskData, setTaskData] = useState([]);
-  const [selectedTaskId, setSelectedTaskId] = useState()
-  const [selectedAppAcronym, setSelectedAppAcronym] = useState()
+  const [selectedTaskId, setSelectedTaskId] = useState();
+  const [selectedAppAcronym, setSelectedAppAcronym] = useState();
 
-  const handleOpenModal = (taskId, taskAcronym) => {
-    setSelectedTaskId(taskId)
-    setSelectedAppAcronym(taskAcronym)
+  // const handleOpenModal = (taskId, taskAcronym) => {
+  //   console.log("This is the taskId for handleOpenModal: ", taskId);
+  //   console.log(
+  //     "This is the task_app_acronym for handleOpenModal: ",
+  //     taskAcronym
+  //   );
+  //   setSelectedTaskId(taskId);
+  //   setSelectedAppAcronym(taskAcronym);
+  //   setOpenModal(true);
+  // };
+
+  const handleOpenModal = (task) => {
+    console.log("testing handleopenmodal taskid: ", task.task_id);
+    console.log("testing handleopenmodal acronym: ", task.task_app_acronym);
+    setSelectedTaskId(task.task_id);
+    setSelectedAppAcronym(task.task_app_acronym);
     setOpenModal(true);
-  }
+  };
+
   const handleCloseModal = () => {
-    console.log("I am closing")
-    setOpenModal(false)
+    console.log("I am closing");
+    setOpenModal(false);
   };
 
   const modalStyle = {
@@ -85,17 +99,17 @@ export default function TaskHomePage() {
   };
 
   // fetching all task for this application
-  const fetchAllTask = async() => {
+  const fetchAllTask = async () => {
     try {
       const response = await axios.post("http://localhost:8000/app/tasks/all", {
-        task_app_acronym : appId
-      })
-      console.log('Fetching all task relating to app: ', response.data.data)
-      setTaskData(response.data.data)
+        task_app_acronym: appId,
+      });
+      console.log("Fetching all task relating to app: ", response.data.data);
+      setTaskData(response.data.data);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   const handlePlan = (appId) => {
     navigate(`/app/${appId}/plans`);
@@ -111,24 +125,36 @@ export default function TaskHomePage() {
   }, []);
 
   // organize tasks by status
-  const openTasks = taskData.filter(task => task.task_status === 'open');
-  const todoTasks = taskData.filter(task => task.task_status === 'todo');
-  const doingTasks = taskData.filter(task => task.task_status === 'doing');
-  const doneTasks = taskData.filter(task => task.task_status === 'done');
-  const closedTasks = taskData.filter(task => task.task_status === 'closed');
+  const openTasks = taskData.filter((task) => task.task_status === "open");
+  const todoTasks = taskData.filter((task) => task.task_status === "todo");
+  const doingTasks = taskData.filter((task) => task.task_status === "doing");
+  const doneTasks = taskData.filter((task) => task.task_status === "done");
+  const closedTasks = taskData.filter((task) => task.task_status === "closed");
 
   // function to render task cards
   const renderTaskCard = (task) => (
-    <Card sx={{ width: 200, marginTop: 2 }} key={task.task_id} onClick={() => handleOpenModal(task.task_id, task.task_app_acronym)}>
+    <Card
+      sx={{ width: 200, marginTop: 2 }}
+      key={task.task_id}
+      onClick={() => handleOpenModal(task)}
+    >
       <CardActionArea>
         <CardContent>
           <Typography gutterBottom variant="h6" component="div">
             {task.task_id}
           </Typography>
-          <Typography variant="body2" color="text.secondary" style={{ marginBottom: 15 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            style={{ marginBottom: 15 }}
+          >
             {task.task_name}
           </Typography>
-          <Typography variant="body2" color="text.secondary" style={{ marginBottom: 15 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            style={{ marginBottom: 15 }}
+          >
             {task.task_owner}
           </Typography>
           <Box display="flex" justifyContent="flex-end">
@@ -143,9 +169,13 @@ export default function TaskHomePage() {
   useEffect(() => {
     console.log(`App acronym: ${appId}`);
     console.log(`Is the user permitted: ${isPermitted}`);
-    console.log('TaskData state consist of: ',taskData)
-    console.log('This is the task_id to be passed to viewTask', selectedTaskId)
-  }, [appId, isPermitted, taskData, selectedTaskId]);
+    console.log("TaskData state consist of: ", taskData);
+    console.log("This is the task_id to be passed to viewTask", selectedTaskId);
+    console.log(
+      "This is the task_app_acronym to be passed to viewTask",
+      selectedAppAcronym
+    );
+  }, [appId, isPermitted, taskData, selectedTaskId, selectedAppAcronym]);
 
   return (
     <div>
@@ -186,47 +216,48 @@ export default function TaskHomePage() {
             style={{ marginTop: 40 }}
           >
             {/* OPEN STATE Column */}
-            {/* OPEN STATE Column */}
-            <Stack direction="column" style={{width : 210}}>
+            <Stack direction="column" style={{ width: 210 }}>
               <Chip label="OPEN" />
-              {openTasks.map(task => renderTaskCard(task))}
+              {openTasks.map((task) => renderTaskCard(task))}
             </Stack>
 
             {/* TODO STATE Column */}
-            <Stack direction="column" style={{width : 210}}>
+            <Stack direction="column" style={{ width: 210 }}>
               <Chip label="TO DO" />
-              {todoTasks.map(task => renderTaskCard(task))}
+              {todoTasks.map((task) => renderTaskCard(task))}
             </Stack>
 
             {/* DOING STATE Column */}
-            <Stack direction="column" style={{width : 210}}>
+            <Stack direction="column" style={{ width: 210 }}>
               <Chip label="DOING" />
-              {doingTasks.map(task => renderTaskCard(task))}
+              {doingTasks.map((task) => renderTaskCard(task))}
             </Stack>
 
             {/* DONE STATE Column */}
-            <Stack direction="column" style={{width : 210}}>
+            <Stack direction="column" style={{ width: 210 }}>
               <Chip label="DONE" />
-              {doneTasks.map(task => renderTaskCard(task))}
+              {doneTasks.map((task) => renderTaskCard(task))}
             </Stack>
 
             {/* CLOSED STATE Column */}
-            <Stack direction="column" style={{width : 210}}>
+            <Stack direction="column" style={{ width: 210 }}>
               <Chip label="CLOSED" />
-              {closedTasks.map(task => renderTaskCard(task))}
+              {closedTasks.map((task) => renderTaskCard(task))}
             </Stack>
             <Modal
-                open={openModal}
-                onClose={handleCloseModal}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-               >
-                  <ViewTask taskId={selectedTaskId} app_acronym={selectedAppAcronym}/>
-              </Modal>
+              open={openModal}
+              onClose={handleCloseModal}
+              aria-labelledby="modal-modal-title"
+              aria-describedby="modal-modal-description"
+            >
+              <ViewTask
+                taskId={selectedTaskId}
+                app_acronym={selectedAppAcronym}
+              />
+            </Modal>
           </Stack>
         </Grid>
       </Container>
-      
     </div>
   );
 }
