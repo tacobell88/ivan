@@ -497,10 +497,10 @@ exports.createTask = catchASyncError(async (req, res, next) => {
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
   const task_createdate = currentDate.format("DD-MM-YYYY");
 
-  const notesDelimiter = " ================================ ";
+  const notesDelimiter = " =============== ";
   //const auditTrailFormat = notesDelimiter + formattedDate + notesDelimiter;
 
-  const auditTrailLog = `\n${notesDelimiter} Task created on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n ================================================================================================ \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task created on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n ===================================================================== \n`;
 
   const task_id = `${task_app_acronym}_${permSqlRows[0].app_rnumber + 1}`;
   const newRnum = permSqlRows[0].app_rnumber + 1;
@@ -588,7 +588,121 @@ exports.getTaskPlans = catchASyncError(async(req,res,next) => {
       });
 })
 
-exports.editTask = catchASyncError(async (req, res, next) => {});
+// exports.editTask = catchASyncError(async (req, res, next) => {
+//     var { task_id, task_description, task_status, task_notes, action} = req.body
+//     const task_owner = req.user.username;
+
+//     //validating if task_description is more than 255 characters
+    
+//     // retrieving task
+//     const taskSQL = `SELECT * FROM tasks where task_id =?`
+//     const [taskSQLRows, fields] = await db.execute(taskSQL, [task_id])
+//     if (taskSQLRows.length === 0) {
+//         throw next(new ErrorHandler("Task does not exist", 400))
+//     }
+    
+//     //storing retrieved task_state
+
+//     //storing previous task notes
+//     const prevNote = taskSQLRows[0].task_notes
+//     console.log(prevNote);
+
+//     return res.status(200).json({
+//         success: true,
+//         data: taskSQLRows[0]
+//     })
+// });
+
+exports.editTask = catchASyncError(async (req, res, next) => {
+    var { task_id, task_description, task_status, task_notes, task_plan } = req.body
+    const task_owner = req.user.username;
+
+    //validating if task_description is more than 255 characters
+    
+    // retrieving task
+    const taskSQL = `SELECT * FROM tasks where task_id =?`
+    const [taskSQLRows, taskSQLfields] = await db.execute(taskSQL, [task_id])
+    if (taskSQLRows.length === 0) {
+        throw next(new ErrorHandler("Task does not exist", 400))
+    }
+    
+    //storing retrieved task_state
+
+    //storing previous task notes
+    const prevNote = taskSQLRows[0].task_notes
+    console.log(prevNote);
+
+    // date for audit trail
+    const currentDate = dayjs();
+    const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
+
+    const notesDelimiter = " =========== ";
+    const auditTrailLog = `\n${notesDelimiter} Task edited on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n =================================================================== \n`;
+    const newNote = auditTrailLog + prevNote;
+
+    const updateTaskSQL = `UPDATE tasks SET task_description =?, task_plan =?, task_notes=? WHERE task_id=?`
+
+    const [updateTaskRows, updateTaskFields] = await db.execute(updateTaskSQL, [task_description, task_plan, newNote, task_id])
+
+    if (updateTaskRows.affectedRows === 0 ) {
+        throw next(new ErrorHandler("Error editing notes", 400))
+    }
+    return res.status(200).json({
+        success: true,
+        data: taskSQLRows[0]
+    })
+});
+
+exports.promoteTask = catchASyncError(async(req,res,next) => {
+    var { task_id, task_description, task_status, task_notes } = req.body
+    const task_owner = req.user.username;
+
+    //validating if task_description is more than 255 characters
+    
+    // retrieving task
+    const taskSQL = `SELECT * FROM tasks where task_id =?`
+    const [taskSQLRows, fields] = await db.execute(taskSQL, [task_id])
+    if (taskSQLRows.length === 0) {
+        throw next(new ErrorHandler("Task does not exist", 400))
+    }
+    
+    //storing retrieved task_state
+
+    //storing previous task notes
+    const prevNote = taskSQLRows[0].task_notes
+    console.log(prevNote);
+
+    return res.status(200).json({
+        success: true,
+        data: taskSQLRows[0]
+    })
+
+})
+exports.demoteTask = catchASyncError(async(req,res,next) => {
+    var { task_id, task_description, task_status, task_notes } = req.body
+    const task_owner = req.user.username;
+
+    //validating if task_description is more than 255 characters
+    
+    // retrieving task
+    const taskSQL = `SELECT * FROM tasks where task_id =?`
+    const [taskSQLRows, fields] = await db.execute(taskSQL, [task_id])
+    if (taskSQLRows.length === 0) {
+        throw next(new ErrorHandler("Task does not exist", 400))
+    }
+    
+    //storing retrieved task_state
+
+    //storing previous task notes
+    const prevNote = taskSQLRows[0].task_notes
+    console.log(prevNote);
+
+    return res.status(200).json({
+        success: true,
+        data: taskSQLRows[0]
+    })
+    
+})
 // getting user groups for app permissions for different states for ***TASK***
 // Open state app permissions - PM
 // ToDo state app permssions - Dev

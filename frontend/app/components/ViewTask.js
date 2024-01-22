@@ -192,7 +192,7 @@ const ViewTask = React.forwardRef((props, ref) => {
   //debugging what information is being put when task is being edited
   useEffect(() => {
     console.log("This is task information in viewTask page: ", taskData);
-    if(taskData) 
+    if(taskData) {}
   }, [taskData]);
 
   useEffect(() => {

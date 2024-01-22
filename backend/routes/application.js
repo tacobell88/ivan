@@ -19,6 +19,7 @@ const {
   getTask,
   getTaskInfo,
   getTaskPlans,
+  editTask,
 } = require("../controllers/appController");
 
 // const {} = require('../controllers/planController');
@@ -47,5 +48,6 @@ router.route("/app/task/create").post(isAuthenticated, createTask);
 router.route("/app/tasks/all").post(isAuthenticated, getTask)
 router.route("/app/task/getTask").post(isAuthenticated, getTaskInfo)
 router.route("/app/task/getPlans").post(isAuthenticated, getTaskPlans);
+router.route("/app/task/editTask").post(isAuthenticated, editTask);
 
 module.exports = router;
