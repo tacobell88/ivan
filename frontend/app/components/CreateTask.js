@@ -16,6 +16,7 @@ import {
   makeStyles,
   Grid,
   Box,
+  Autocomplete,
 } from "@mui/material";
 import GlobalContext from "../assets/GlobalContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -34,14 +35,19 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 //   },
 // }));
 
-export default function CreateTask() {
+export default function CreateTask(props) {
   //const classes = useStyles();
 
-  const { appId } = useParams();
+  // const { appId } = useParams();
+  const appId = props.app_acronym;
+  const handleClose = props.handleClose;
   const navigate = useNavigate();
   // used for showing errors in UI
   const { handleAlerts } = useContext(GlobalContext);
   const [isPermitted, setIsPermitted] = useState();
+  const [allPlans, setAllPlans] = useState([]);
+
+  const [taskData, setTaskData] = useState();
 
   const checkPermissions = async () => {
     try {
@@ -68,37 +74,134 @@ export default function CreateTask() {
       console.log("Error checking permissions: ", error);
     }
   };
-  const handleSubmit = () => {};
+
+  const fetchAllPlans = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/app/task/getPlans",
+        {
+          app_acronym: appId,
+        }
+      );
+      const planData = response.data.data.map((plan) => plan.plan_mvp_name);
+      setAllPlans(planData);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleChange = (e) => {
+    setTaskData({ ...taskData, [e.target.name]: e.target.value });
+    console.log(taskData);
+  };
+  // const handleChange = (event, newValue, name) => {
+  //   if (name === "task_plan") {
+  //     // Handle change for Autocomplete
+  //     setTaskData((prev) =>
+  //       prev.map((task, index) => {
+  //         if (index === 0) {
+  //           return { ...task, [name]: newValue };
+  //         }
+  //         return task;
+  //       })
+  //     );
+  //   } else {
+  //     const { target } = event;
+  //     setTaskData((prev) =>
+  //       prev.map((task, index) => {
+  //         if (index === 0) {
+  //           return { ...task, [target.name]: target.value };
+  //         }
+  //         return task;
+  //       })
+  //     );
+  //     console.log([target.name], ":", target.value);
+  //   }
+  //   console.log(name, ":", newValue);
+  // };
+
+  const handlePlanChange = (newValue, name) => {
+    setTaskData({ ...taskData, [name]: newValue });
+    console.log(taskData);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/app/task/create",
+        {
+          task_name: taskData.task_name,
+          task_description: taskData.task_description,
+          task_plan: taskData.task_plan,
+          task_notes: taskData.task_notes,
+          task_app_acronym: appId,
+        }
+      );
+      handleAlerts("Task created successfully", true);
+      setTaskData(null);
+      handleClose();
+    } catch (error) {
+      const errMessage = error.response.data.errMessage;
+      handleAlerts(errMessage, false);
+    }
+  };
 
   useEffect(() => {
     checkPermissions();
+    fetchAllPlans();
   }, []);
+
   return (
-    <form>
-      <Paper
-        style={{
-          padding: "20px",
-          marginTop: 40,
-          maxWidth: "1000px",
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
+    <Paper
+      style={{
+        padding: "20px",
+        marginTop: 40,
+        maxWidth: "1000px",
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
+      <form onSubmit={handleSubmit}>
         <Typography variant="h5" style={{ marginBottom: 40 }}>
           <b>Create Task for {appId}</b>
         </Typography>
         <Grid container spacing={2}>
           <Grid container item xs={6} direction="column">
             <Typography>Task Name</Typography>
-            <TextField size="small"></TextField>
+            <TextField
+              size="small"
+              name="task_name"
+              onChange={handleChange}
+            ></TextField>
             <Typography style={{ marginTop: 20 }}>Task Description</Typography>
-            <TextField size="small"></TextField>
+            <TextField
+              size="small"
+              name="task_description"
+              onChange={handleChange}
+            ></TextField>
             <Typography style={{ marginTop: 20 }}>Task Plan</Typography>
-            <Select size="small"></Select>
+            <Autocomplete
+              name="task_plan"
+              options={allPlans}
+              getOptionLabel={(option) => option}
+              renderInput={(params) => <TextField {...params} />}
+              size="small"
+              onChange={(event, newValue) =>
+                handlePlanChange(newValue, "task_plan")
+              }
+              fullWidth
+              style={{ marginBottom: 15 }}
+            />
           </Grid>
           <Grid container item xs={6} direction="column">
             <Typography>Task Notes</Typography>
-            <TextField multiline rows={20}></TextField>
+            <TextField
+              multiline
+              rows={20}
+              name="task_notes"
+              onChange={handleChange}
+            ></TextField>
           </Grid>
         </Grid>
         <Box textAlign="center">
@@ -106,7 +209,7 @@ export default function CreateTask() {
             Create
           </Button>
         </Box>
-      </Paper>
-    </form>
+      </form>
+    </Paper>
   );
 }

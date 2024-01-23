@@ -22,7 +22,14 @@ const ViewTask = React.forwardRef((props, ref) => {
   const appAcronym = props.app_acronym;
   const { handleAlerts } = useContext(GlobalContext);
   const [taskData, setTaskData] = useState([]);
+
+  const [inittaskData, setInitTaskData] = useState([]);
+
   const [allPlans, setAllPlans] = useState([]);
+  const [isPermitted, setIsPermitted] = useState();
+
+  const [demotable, setDemotable] = useState(false);
+  const [promotable, setPromotable] = useState(false);
 
   const [editMode, setEditMode] = useState();
 
@@ -36,6 +43,7 @@ const ViewTask = React.forwardRef((props, ref) => {
       );
       console.log(response.data.data);
       setTaskData(response.data.data);
+      setInitTaskData(response.data.data);
     } catch (error) {
       console.log(error);
     }
@@ -55,6 +63,34 @@ const ViewTask = React.forwardRef((props, ref) => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        if (taskData.length === 0) return;
+
+        const response = await axios.post(
+          "http://localhost:8000/checkPerms",
+          {
+            app_state: taskData[0].task_status,
+          },
+          {
+            params: { app_acronym: appAcronym },
+          }
+        );
+        console.log(response);
+        if (response.data.success === true) {
+          setIsPermitted(true);
+        }
+      } catch (error) {
+        if (error.response.data.success === false) {
+          setIsPermitted(false);
+        }
+        console.log("Error checking permissions: ", error);
+      }
+    };
+    checkPermissions();
+  }, [taskData]);
 
   // handle change for input fields
   const handleChange = (event, newValue, name) => {
@@ -79,32 +115,10 @@ const ViewTask = React.forwardRef((props, ref) => {
           return task;
         })
       );
+      console.log([target.name], ":", target.value);
     }
+    console.log(name, ":", newValue);
   };
-  // const handleChange = (e, newValue) => {
-  //   if (e.target.name === "task_plan") {
-  //     // Handle change for Autocomplete (task_plan)
-  //     setTaskData((currentTaskData) => {
-  //       return currentTaskData.map((task, index) => {
-  //         if (index === 0) {
-  //           return { ...task, task_plan: newValue };
-  //         }
-  //         return task;
-  //       });
-  //     });
-  //   } else {
-  //     // Handle standard TextField changes
-  //     const { name, value } = e.target;
-  //     setTaskData((currentTaskData) => {
-  //       return currentTaskData.map((task, index) => {
-  //         if (index === 0) {
-  //           return { ...task, [name]: value };
-  //         }
-  //         return task;
-  //       });
-  //     });
-  //   }
-  // };
 
   // Separate handler for additional notes
   const handleAdditionalNotesChange = (e) => {
@@ -125,30 +139,58 @@ const ViewTask = React.forwardRef((props, ref) => {
   };
 
   const handleCancelClick = () => {
+    setTaskData(inittaskData);
     setEditMode(false);
   };
 
   const handleSaveClick = async () => {
-    console.log("Save button clicked");
+    // console.log("Save button clicked");
+    // console.log("clicking save taskData: ", taskData);
+    // console.log(`task_id: ${taskData[0].task_id},
+    //       task_description: ${taskData[0].task_description},
+    //       task_status: ${taskData[0].task_status},
+    //       task_notes: ${taskData[0].task_newNotes} `);
     try {
       //api to send to backend for edittask
       const response = await axios.post(
         "http://localhost:8000/app/task/editTask",
-        {}
+        {
+          task_id: taskData[0].task_id,
+          task_description: taskData[0].task_description,
+          task_status: taskData[0].task_status,
+          task_notes: taskData[0].task_newNotes,
+          task_plan: taskData[0].task_plan,
+          app_acronym: appAcronym,
+        }
       );
+      handleAlerts("App edited succesffuly", true);
+      setEditMode(false);
+      fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
       handleAlerts(errMessage, false);
     }
+    fetchTaskData();
   };
 
   const handlePromoteSaveClick = async () => {
     try {
-      //api to send to backend for edittask
+      //api to send to backend for promote task
       const response = await axios.post(
-        "http://localhost:8000/app/task/editTask",
-        {}
+        "http://localhost:8000/app/task/promoteTask",
+        {
+          task_id: taskData[0].task_id,
+          task_description: taskData[0].task_description,
+          task_status: taskData[0].task_status,
+          task_notes: taskData[0].task_newNotes,
+          task_plan: taskData[0].task_plan,
+          app_acronym: appAcronym,
+        }
       );
+
+      handleAlerts("Task saved & promoted successfully", true);
+      setEditMode(false);
+      fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
       handleAlerts(errMessage, false);
@@ -157,11 +199,21 @@ const ViewTask = React.forwardRef((props, ref) => {
 
   const handleDemoteSaveClick = async () => {
     try {
-      //api to send to backend for edittask
+      //api to send to backend for demote task
       const response = await axios.post(
-        "http://localhost:8000/app/task/editTask",
-        {}
+        "http://localhost:8000/app/task/demoteTask",
+        {
+          task_id: taskData[0].task_id,
+          task_description: taskData[0].task_description,
+          task_status: taskData[0].task_status,
+          task_notes: taskData[0].task_newNotes,
+          task_plan: taskData[0].task_plan,
+          app_acronym: appAcronym,
+        }
       );
+      handleAlerts("Task saved & demoted successfully", true);
+      setEditMode(false);
+      fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
       handleAlerts(errMessage, false);
@@ -175,30 +227,35 @@ const ViewTask = React.forwardRef((props, ref) => {
 
   //useEffect for debugging purposes
   useEffect(() => {
-    // console.log("Updated task data: ", newTaskData)
-    console.log(
-      "This is the task_app_acronym used in viewTask page: ",
-      appAcronym
-    );
-    console.log("This is the task_id used in viewTask page: ", taskId);
+    // if (taskData.length > 0) {
+    console.log("Information in task data: ", taskData);
+    if (
+      taskData[0]?.task_status === "open" ||
+      taskData[0]?.task_status === "todo"
+    ) {
+      setDemotable(false);
+    } else {
+      setDemotable(true);
+    }
+    if (taskData[0]?.task_status === "done") {
+      if (inittaskData[0]?.task_plan === taskData[0]?.task_plan) {
+        setPromotable(true);
+      } else {
+        setPromotable(false);
+      }
+    } else {
+      setPromotable(true);
+    }
 
-    console.log(
-      "This is plans information for app in viewTask page: ",
-      allPlans
-    );
-  }, [taskId, allPlans]);
-
-
-  //debugging what information is being put when task is being edited
-  useEffect(() => {
-    console.log("This is task information in viewTask page: ", taskData);
-    if(taskData) {}
+    // if (taskData[0]?.task_status === "done") {
+    //   if (inittaskData[0]?.task_plan === taskData[0]?.task_plan) {
+    //   }
+    //   // setPromotable(false)
+    //   // }
+    // }
   }, [taskData]);
 
-  useEffect(() => {
-    
-  })
-
+  // OPEN STATE, DOING STATE NO DEMOTING
 
   return (
     <Paper
@@ -303,19 +360,9 @@ const ViewTask = React.forwardRef((props, ref) => {
                   handleChange(event, newValue, "task_plan")
                 }
                 fullWidth
+                size="small"
                 style={{ marginBottom: 15 }}
               />
-              {/* <Autocomplete
-                name="task_plan"
-                onChange={handleChange}
-                disabled={!editMode}
-                options={allPlans.map((plan) => plan)}
-                renderInput={(params) => <TextField {...params} />}
-                size="small"
-                fullWidth
-                value={row.task_plan || ""}
-                style={{ marginBottom: 15 }}
-              /> */}
             </>
           ))}
         </Grid>
@@ -333,7 +380,6 @@ const ViewTask = React.forwardRef((props, ref) => {
                 fullWidth
                 value={row.task_notes}
                 disabled={true}
-                style={{ width: 650 }}
               />
             </>
           ))}
@@ -353,46 +399,50 @@ const ViewTask = React.forwardRef((props, ref) => {
         />
       </Box>
       <Box textAlign="center" sx={{ mt: 3 }}>
-        {editMode ? (
-          <>
-            <Button
-              variant="outlined"
-              color="error"
-              style={{ marginRight: 10 }}
-              onClick={() => handleCancelClick()}
-            >
-              Cancel
+        {isPermitted &&
+          (editMode ? (
+            <>
+              <Button
+                variant="outlined"
+                color="error"
+                style={{ marginRight: 10 }}
+                onClick={() => handleCancelClick()}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outlined"
+                color="success"
+                style={{ marginRight: 10 }}
+                onClick={() => handleSaveClick()}
+                disabled={!promotable}
+              >
+                Save
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                style={{ marginRight: 10 }}
+                onClick={() => handlePromoteSaveClick()}
+                disabled={!promotable}
+              >
+                Save & Promote
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                style={{ marginRight: 10 }}
+                onClick={() => handleDemoteSaveClick()}
+                disabled={!demotable}
+              >
+                Save & demote
+              </Button>
+            </>
+          ) : (
+            <Button variant="contained" onClick={() => handleEditClick()}>
+              Edit
             </Button>
-            <Button
-              variant="outlined"
-              color="success"
-              style={{ marginRight: 10 }}
-              onClick={() => handleSaveClick()}
-            >
-              Save
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              style={{ marginRight: 10 }}
-              onClick={() => handlePromoteSaveClick()}
-            >
-              Save & Promote
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              style={{ marginRight: 10 }}
-              onClick={() => handleDemoteSaveClick()}
-            >
-              Save & demote
-            </Button>
-          </>
-        ) : (
-          <Button variant="contained" onClick={() => handleEditClick()}>
-            Edit
-          </Button>
-        )}
+          ))}
       </Box>
     </Paper>
   );

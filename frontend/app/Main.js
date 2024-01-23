@@ -23,7 +23,6 @@ import { UserManagementProvider } from "./assets/UserMgntContext";
 import GlobalContext from "./assets/GlobalContext";
 import ViewApplication from "./components/Application";
 import CreateApp from "./components/CreateApplication";
-import Plans from "./components/Plans";
 import TaskHomePage from "./components/TaskHomePage";
 import PlansTest from "./testingcomponents/PlansTest";
 import CreateTask from "./components/CreateTask";

@@ -20,6 +20,8 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import ViewTask from "./ViewTask";
+import CreateTask from "./CreateTask";
+import PlansTest from "../testingcomponents/PlansTest";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -29,51 +31,31 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+};
+
 export default function TaskHomePage() {
   const { appId } = useParams();
   const navigate = useNavigate();
   const [isPermitted, setIsPermitted] = useState();
   const [openModal, setOpenModal] = useState(false);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [openPlanModal, setOpenPlanModal] = useState(false);
 
   // for task related data
   const [taskData, setTaskData] = useState([]);
   const [selectedTaskId, setSelectedTaskId] = useState();
   const [selectedAppAcronym, setSelectedAppAcronym] = useState();
-
-  // const handleOpenModal = (taskId, taskAcronym) => {
-  //   console.log("This is the taskId for handleOpenModal: ", taskId);
-  //   console.log(
-  //     "This is the task_app_acronym for handleOpenModal: ",
-  //     taskAcronym
-  //   );
-  //   setSelectedTaskId(taskId);
-  //   setSelectedAppAcronym(taskAcronym);
-  //   setOpenModal(true);
-  // };
-
-  const handleOpenModal = (task) => {
-    console.log("testing handleopenmodal taskid: ", task.task_id);
-    console.log("testing handleopenmodal acronym: ", task.task_app_acronym);
-    setSelectedTaskId(task.task_id);
-    setSelectedAppAcronym(task.task_app_acronym);
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    console.log("I am closing");
-    setOpenModal(false);
-  };
-
-  const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-  };
+  const [addTaskAcronym, setAddTaskAcronym] = useState();
+  const [planAcronym, setPlanAcronym] = useState();
 
   const checkPermissions = async () => {
     try {
@@ -115,14 +97,47 @@ export default function TaskHomePage() {
     navigate(`/app/${appId}/plans`);
   };
 
-  const handleAddTask = () => {
-    navigate(`/app/${appId}/task/create`);
+  // const handleAddTask = () => {
+  //   navigate(`/app/${appId}/task/create`);
+  // };
+
+  const handleOpenModal = (task) => {
+    console.log("testing handleopenmodal taskid: ", task.task_id);
+    console.log("testing handleopenmodal acronym: ", task.task_app_acronym);
+    setSelectedTaskId(task.task_id);
+    setSelectedAppAcronym(task.task_app_acronym);
+    setOpenModal(true);
   };
 
-  useEffect(() => {
-    checkPermissions();
+  const handleCloseModal = () => {
+    console.log("I am closing");
+    setOpenModal(false);
     fetchAllTask();
-  }, []);
+  };
+
+  const handleAddOpenModal = (app) => {
+    console.log("testing handleopenmodal information: ", app);
+    setAddTaskAcronym(app);
+    setOpenAddModal(true);
+  };
+
+  const handleAddCloseModal = () => {
+    console.log("I am closing");
+    setOpenAddModal(false);
+    fetchAllTask();
+  };
+
+  const handleOpenPlanModal = (app) => {
+    console.log("testing handleopenmodal information: ", app);
+    setPlanAcronym(app);
+    setOpenPlanModal(true);
+  };
+
+  const handleClosePlanModal = () => {
+    console.log("I am closing");
+    setOpenPlanModal(false);
+    fetchAllTask();
+  };
 
   // organize tasks by status
   const openTasks = taskData.filter((task) => task.task_status === "open");
@@ -130,6 +145,11 @@ export default function TaskHomePage() {
   const doingTasks = taskData.filter((task) => task.task_status === "doing");
   const doneTasks = taskData.filter((task) => task.task_status === "done");
   const closedTasks = taskData.filter((task) => task.task_status === "closed");
+
+  useEffect(() => {
+    checkPermissions();
+    fetchAllTask();
+  }, []);
 
   // function to render task cards
   const renderTaskCard = (task) => (
@@ -179,6 +199,28 @@ export default function TaskHomePage() {
 
   return (
     <div>
+      <Modal
+        open={openAddModal}
+        onClose={handleAddCloseModal}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <CreateTask
+          app_acronym={addTaskAcronym}
+          handleClose={handleAddCloseModal}
+        />
+      </Modal>
+      <Modal
+        open={openPlanModal}
+        onClose={handleClosePlanModal}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <PlansTest
+          app_acronym={planAcronym}
+          handleClose={handleAddCloseModal}
+        />
+      </Modal>
       <Container>
         <Grid>
           <Grid item style={{ marginTop: 20 }}>
@@ -197,12 +239,23 @@ export default function TaskHomePage() {
             <Button
               variant="contained"
               style={{ marginRight: 20 }}
-              onClick={() => handlePlan(appId)}
+              // onClick={() => handlePlan(appId)}
+              onClick={() => handleOpenPlanModal(appId)}
             >
               Edit Plans
             </Button>
-            {isPermitted ? (
+            {/* {isPermitted ? (
               <Button variant="contained" onClick={() => handleAddTask(appId)}>
+                Add Task
+              </Button>
+            ) : (
+              ""
+            )} */}
+            {isPermitted ? (
+              <Button
+                variant="contained"
+                onClick={() => handleAddOpenModal(appId)}
+              >
                 Add Task
               </Button>
             ) : (
@@ -244,6 +297,7 @@ export default function TaskHomePage() {
               <Chip label="CLOSED" />
               {closedTasks.map((task) => renderTaskCard(task))}
             </Stack>
+
             <Modal
               open={openModal}
               onClose={handleCloseModal}

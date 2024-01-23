@@ -19,8 +19,9 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import CreateIcon from "@mui/icons-material/Create";
 
-function PlansTest() {
-  const { appId } = useParams();
+function PlansTest(props) {
+  // const { appId } = useParams();
+  const appId = props.app_acronym;
 
   //used to set plan data to display in the table
   const [planData, setPlanData] = useState([]);
@@ -214,70 +215,70 @@ function PlansTest() {
 
   return (
     <Container>
-      <Grid
-        container
-        spacing={20}
-        justifyContent="flex-end"
-        style={{ marginTop: 45 }}
+      <Paper
+        style={{
+          padding: "20px",
+          marginTop: 10,
+          maxWidth: "1000px",
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
       >
-        {isPermitted ? (
-          <form onSubmit={handlePlanCreateSubmit}>
-            <TextField
-              name="plan_mvp_name"
-              value={planCreateName}
-              label="Plan Name"
-              size="small"
-              style={{ marginRight: 20 }}
-              onChange={(e) => setPlanCreateName(e.target.value)}
-            ></TextField>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={
-                  planCreateStartDate
-                    ? dayjs(planCreateStartDate, "DD-MM-YYYY")
-                    : null
-                }
-                label="Start Date"
-                sx={{ width: 180, marginRight: 2 }}
-                slotProps={{ textField: { size: "small" } }}
-                onChange={handleCreateStartDateChange}
-              ></DatePicker>
-            </LocalizationProvider>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={
-                  planCreateEndDate
-                    ? dayjs(planCreateEndDate, "DD-MM-YYYY")
-                    : null
-                }
-                label="End Date"
-                sx={{ width: 180, marginRight: 2 }}
-                slotProps={{ textField: { size: "small" } }}
-                onChange={handleCreateEndDateChange}
-              ></DatePicker>
-            </LocalizationProvider>
-            <Button
-              type="submit"
-              variant="contained"
-              style={{ marginRight: 100 }}
-            >
-              Add Plan
-            </Button>
-          </form>
-        ) : (
-          <></>
-        )}
-      </Grid>
-      <Grid>
-        <Paper
-          style={{
-            padding: "20px",
-            marginTop: 10,
-            maxWidth: "1000px",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
+        <Grid
+          container
+          spacing={20}
+          justifyContent="flex-end"
+          style={{ marginTop: 20, marginBottom: 20 }}
         >
+          {isPermitted ? (
+            <form onSubmit={handlePlanCreateSubmit}>
+              <TextField
+                name="plan_mvp_name"
+                value={planCreateName}
+                label="Plan Name"
+                size="small"
+                style={{ marginRight: 20 }}
+                onChange={(e) => setPlanCreateName(e.target.value)}
+              ></TextField>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={
+                    planCreateStartDate
+                      ? dayjs(planCreateStartDate, "DD-MM-YYYY")
+                      : null
+                  }
+                  label="Start Date"
+                  sx={{ width: 180, marginRight: 2 }}
+                  slotProps={{ textField: { size: "small" } }}
+                  onChange={handleCreateStartDateChange}
+                ></DatePicker>
+              </LocalizationProvider>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={
+                    planCreateEndDate
+                      ? dayjs(planCreateEndDate, "DD-MM-YYYY")
+                      : null
+                  }
+                  label="End Date"
+                  sx={{ width: 180, marginRight: 2 }}
+                  slotProps={{ textField: { size: "small" } }}
+                  onChange={handleCreateEndDateChange}
+                ></DatePicker>
+              </LocalizationProvider>
+              <Button
+                type="submit"
+                variant="contained"
+                style={{ marginRight: 100 }}
+              >
+                Add Plan
+              </Button>
+            </form>
+          ) : (
+            <></>
+          )}
+        </Grid>
+        <Grid>
           <Table>
             <TableHead>
               <TableRow>
@@ -355,8 +356,8 @@ function PlansTest() {
                 ))}
             </TableBody>
           </Table>
-        </Paper>
-      </Grid>
+        </Grid>
+      </Paper>
     </Container>
   );
 }
