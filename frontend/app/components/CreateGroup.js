@@ -45,6 +45,12 @@ export default function CreateGroup() {
                 navigate('/');
             } else if ( error.response.data.errMessage == `Duplicate entry '${groupName}' for key 'grouplist.PRIMARY'`) {
                 handleAlerts(`${groupName} already exists`, false);
+            } else if (error.response.data.errMessage === "User is disabled") {
+                Cookies.remove("token");
+                delete axios.defaults.headers.common["Authorization"];
+                setIsLoggedIn(false);
+                handleAlerts("User is disabled", false);
+                navigate("/");
             }
         } finally {
             setGroupName('');

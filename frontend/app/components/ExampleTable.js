@@ -176,23 +176,22 @@ function ExampleTable() {
             "Password needs to be 8-10char and contains alphanumeric and special character",
             false
           );
-        }
-        if (
-          error.response.data.errMessage ==
-          `Duplicate entry '${userToEdit.username}' for key 'accounts.PRIMARY'`
-        ) {
+        } else if (error.response.data.errMessage == `Duplicate entry '${userToEdit.username}' for key 'accounts.PRIMARY'`) {
           handleAlerts("Username already exists", false);
-        }
-        if (
-          error.response.data.errMessage ==
-          "User not allowed to view this resource"
-        ) {
+        } else if (error.response.data.errMessage == "User not allowed to view this resource") {
           Cookies.remove("token");
           delete axios.defaults.headers.common["Authorization"];
           setIsLoggedIn(false);
           handleAlerts("User is not an admin", false);
           navigate("/");
+        } else if (error.response.data.errMessage === "User is disabled") {
+          Cookies.remove("token");
+          delete axios.defaults.headers.common["Authorization"];
+          setIsLoggedIn(false);
+          handleAlerts("User is disabled", false);
+          navigate("/");
         }
+        handleAlerts(error.response.data.errMessage , false)
         console.log("Error updating user:", error);
       }
     }
