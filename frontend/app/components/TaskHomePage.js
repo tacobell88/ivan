@@ -161,14 +161,14 @@ export default function TaskHomePage() {
       <CardActionArea>
         <CardContent>
           <Typography gutterBottom variant="h6" component="div">
-            {task.task_id}
+            {task.task_name}
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
             style={{ marginBottom: 15 }}
           >
-            {task.task_name}
+            {task.task_id}
           </Typography>
           <Typography
             variant="body2"

@@ -47,7 +47,13 @@ export default function CreateTask(props) {
   const [isPermitted, setIsPermitted] = useState();
   const [allPlans, setAllPlans] = useState([]);
 
-  const [taskData, setTaskData] = useState();
+  const [taskData, setTaskData] = useState({
+    task_name: "",
+    task_description: null,
+    task_notes: "",
+    task_plan: null,
+    task_app_acronym: appId,
+  });
 
   const checkPermissions = async () => {
     try {
@@ -127,6 +133,13 @@ export default function CreateTask(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log({
+      task_name: taskData.task_name,
+      task_description: taskData.task_description,
+      task_plan: taskData.task_plan,
+      task_notes: taskData.task_notes,
+      task_app_acronym: appId,
+    });
     try {
       const response = await axios.post(
         "http://localhost:8000/app/task/create",
@@ -156,10 +169,12 @@ export default function CreateTask(props) {
     <Paper
       style={{
         padding: "20px",
-        marginTop: 40,
+        marginTop: 75,
         maxWidth: "1000px",
         marginLeft: "auto",
         marginRight: "auto",
+        maxHeight: "80vh", // Adjust the height as needed
+        overflowY: "auto",
       }}
     >
       <form onSubmit={handleSubmit}>
@@ -179,6 +194,8 @@ export default function CreateTask(props) {
               size="small"
               name="task_description"
               onChange={handleChange}
+              multiline
+              rows={12}
             ></TextField>
             <Typography style={{ marginTop: 20 }}>Task Plan</Typography>
             <Autocomplete

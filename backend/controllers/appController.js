@@ -486,18 +486,15 @@ exports.editPlan = catchASyncError(async (req, res, next) => {
 //
 // creating task API
 exports.createTask = catchASyncError(async (req, res, next) => {
-  const {
-    task_name,
-    task_description,
-    task_plan,
-    task_notes,
-    task_app_acronym,
-  } = req.body;
+  var { task_name, task_description, task_plan, task_notes, task_app_acronym } =
+    req.body;
   // getting current user's username to assign it as task owner
   const task_owner = req.user.username;
   const task_creator = task_owner;
   const task_status = "open";
   // check if task name is empty or not
+
+  console.log("give me this: ", req.body);
   if (!task_name || task_name.trim() === "") {
     throw next(new ErrorHandler("Task name is required", 400));
   }

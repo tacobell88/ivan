@@ -229,7 +229,7 @@ function ExampleTable() {
               <TableCell>
                 <TextField
                   value={editIdx === row.id ? row.username : row.username}
-                  disabled={editIdx !== row.id}
+                  disabled={true}
                   onChange={(e) => handleChange(e, "username", row.id)}
                 />
               </TableCell>

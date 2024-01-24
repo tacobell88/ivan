@@ -273,74 +273,28 @@ const ViewTask = React.forwardRef((props, ref) => {
           {taskData.map((row, index) => (
             <>
               <Typography>
-                <b> Task Name </b>
+                <b> Task Name : </b> {row.task_name}
               </Typography>
-              <TextField
+              <Typography>
+                <b> Task Creator : </b> {row.task_creator}
+              </Typography>
+              <Typography>
+                <b> Task Owner : </b> {row.task_owner}
+              </Typography>
+              <Typography>
+                <b> Task Created Date : </b> {row.task_createdate}
+              </Typography>
+              <Typography>
+                <b> Task Status : </b> {row.task_status}
+              </Typography>
+              {/* <TextField
                 name="task_name"
                 disabled={true}
                 size="small"
                 value={row.task_name || ""}
                 fullWidth
                 style={{ marginBottom: 15 }}
-              />
-
-              <Typography>
-                <b>Task Description </b>
-              </Typography>
-              <TextField
-                name="task_description"
-                disabled={!editMode}
-                size="small"
-                onChange={handleChange}
-                fullWidth
-                style={{ marginBottom: 15 }}
-                value={row.task_description || ""}
-              />
-              <Typography>
-                <b>Task Owner</b>
-              </Typography>
-              <TextField
-                name="task_owner"
-                disabled={true}
-                size="small"
-                fullWidth
-                value={row.task_owner || ""}
-                style={{ marginBottom: 15 }}
-              />
-              <Typography>
-                <b>Task Status </b>
-              </Typography>
-              <TextField
-                name="task_status"
-                disabled={true}
-                size="small"
-                fullWidth
-                style={{ marginBottom: 15 }}
-                value={row.task_status || ""}
-              />
-              <Typography>
-                <b>Task Create Date</b>
-              </Typography>
-              <TextField
-                name="task_createdate"
-                disabled={true}
-                size="small"
-                fullWidth
-                style={{ marginBottom: 15 }}
-                value={row.task_createdate || ""}
-              />
-
-              <Typography>
-                <b>Task Creator</b>
-              </Typography>
-              <TextField
-                name="task_creator"
-                disabled={true}
-                size="small"
-                fullWidth
-                value={row.task_creator || ""}
-                style={{ marginBottom: 15 }}
-              />
+              /> */}
               <Typography>
                 <b>Task Plan</b>
               </Typography>
@@ -358,6 +312,65 @@ const ViewTask = React.forwardRef((props, ref) => {
                 size="small"
                 style={{ marginBottom: 15 }}
               />
+              <Typography>
+                <b>Task Description </b>
+              </Typography>
+              <TextField
+                name="task_description"
+                disabled={!editMode}
+                size="small"
+                multiline
+                rows={8}
+                onChange={handleChange}
+                fullWidth
+                style={{ marginBottom: 15 }}
+                value={row.task_description || ""}
+              />
+              {/* <Typography>
+                <b>Task Owner</b>
+              </Typography>
+              <TextField
+                name="task_owner"
+                disabled={true}
+                size="small"
+                fullWidth
+                value={row.task_owner || ""}
+                style={{ marginBottom: 15 }}
+              /> */}
+              {/* <Typography>
+                <b>Task Status </b>
+              </Typography>
+              <TextField
+                name="task_status"
+                disabled={true}
+                size="small"
+                fullWidth
+                style={{ marginBottom: 15 }}
+                value={row.task_status || ""}
+              /> */}
+              {/* <Typography>
+                <b>Task Create Date</b>
+              </Typography>
+              <TextField
+                name="task_createdate"
+                disabled={true}
+                size="small"
+                fullWidth
+                style={{ marginBottom: 15 }}
+                value={row.task_createdate || ""}
+              /> */}
+
+              {/* <Typography>
+                <b>Task Creator</b>
+              </Typography>
+              <TextField
+                name="task_creator"
+                disabled={true}
+                size="small"
+                fullWidth
+                value={row.task_creator || ""}
+                style={{ marginBottom: 15 }}
+              /> */}
             </>
           ))}
         </Grid>
@@ -381,20 +394,22 @@ const ViewTask = React.forwardRef((props, ref) => {
           ))}
         </Grid>
       </Grid>
-      <Box>
-        <Typography>
-          <b>Additional Notes</b>
-        </Typography>
-        <TextField
-          name="task_newNotes"
-          multiline
-          rows={13}
-          fullWidth
-          disabled={!editMode}
-          onChange={handleAdditionalNotesChange}
-          style={{ maxWidth: 700 }}
-        />
-      </Box>
+      {editMode && (
+        <Box>
+          <Typography>
+            <b>Additional Notes</b>
+          </Typography>
+          <TextField
+            name="task_newNotes"
+            multiline
+            rows={13}
+            fullWidth
+            disabled={!editMode}
+            onChange={handleAdditionalNotesChange}
+            style={{ maxWidth: 700 }}
+          />
+        </Box>
+      )}
       <Box textAlign="center" sx={{ mt: 3 }}>
         {isPermitted &&
           (editMode ? (

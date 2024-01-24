@@ -25,7 +25,7 @@ function CreateApp() {
   const [appData, setAppData] = useState({
     app_acronym: "",
     app_description: "",
-    app_rnumber: "",
+    app_rnumber: "0",
     app_startdate: "",
     app_enddate: "",
     app_permit_create: "",
@@ -178,7 +178,7 @@ function CreateApp() {
         style={{
           padding: "20px",
           marginTop: 75,
-          maxWidth: "800px",
+          maxWidth: "1000px",
           marginLeft: "auto",
           marginRight: "auto",
           maxHeight: "80vh", // Adjust the height as needed
@@ -246,6 +246,7 @@ function CreateApp() {
               <TableCell>
                 <TextField
                   type="number"
+                  value={appData.app_rnumber}
                   inputProps={{ min: 0, max: 100000 }}
                   onKeyDown={preventMinus}
                   name="app_rnumber"
@@ -278,9 +279,10 @@ function CreateApp() {
                   name="app_description"
                   label="Enter a description"
                   multiline
-                  rows={5}
+                  rows={10}
                   value={appData.app_description}
                   onChange={handleChange}
+                  style={{ width: 500 }}
                   size="small"
                 />
               </TableCell>

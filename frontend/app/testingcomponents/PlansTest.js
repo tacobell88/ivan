@@ -218,10 +218,12 @@ function PlansTest(props) {
       <Paper
         style={{
           padding: "20px",
-          marginTop: 10,
+          marginTop: 75,
           maxWidth: "1000px",
           marginLeft: "auto",
           marginRight: "auto",
+          maxHeight: "80vh", // Adjust the height as needed
+          overflowY: "auto",
         }}
       >
         <Grid

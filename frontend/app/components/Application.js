@@ -30,6 +30,7 @@ function ViewApplication(props) {
   const [endDate, setEndDate] = useState("");
   const navigate = useNavigate();
   const { handleAlerts } = useContext(GlobalContext);
+  const [initAppData, setInitAppData] = useState([]);
   const appId = props.appId;
 
   console.log(
@@ -95,6 +96,7 @@ function ViewApplication(props) {
         setStartDate(formatStartDate);
         setEndDate(formatEndDate);
         setAppData(response.data.data);
+        setInitAppData(response.data.data);
       } catch (error) {
         if (
           error.response.data.errMessage ===
@@ -134,6 +136,7 @@ function ViewApplication(props) {
   };
 
   const handleCancelClick = () => {
+    setAppData(initAppData);
     setIsEditMode(false);
   };
 
@@ -195,7 +198,17 @@ function ViewApplication(props) {
   return (
     <Page title="Application Page">
       <Container>
-        <Paper>
+        <Paper
+          style={{
+            padding: "20px",
+            marginTop: 75,
+            maxWidth: "1000px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            maxHeight: "80vh", // Adjust the height as needed
+            overflowY: "auto",
+          }}
+        >
           <TableContainer style={{ marginTop: 40 }}>
             <TableHead>
               <TableRow>
