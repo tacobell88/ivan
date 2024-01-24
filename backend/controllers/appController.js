@@ -1,17 +1,30 @@
 const db = require("../config/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
+const { mailTester } = require("../utils/nodemailer");
 const { Checkgroup } = require("./groupController");
 const dayjs = require("dayjs");
 
 function validRnumber(str) {
-  const validRegex = new RegExp(/^[1-9]\d*$/);
+  const validRegex = new RegExp(/^[0-9]\d*$/);
   return validRegex.test(str);
 }
 
 function validateInput(str) {
   // this regex is to check alpha / alpha numeric only (no special characters) and less than 45 characters
-  const validRegex = new RegExp(/^[A-Za-z0-9]{0,45}$/);
+  const validRegex = new RegExp(/^[a-zA-Z][a-zA-Z0-9]{0,44}$/);
+  return validRegex.test(str);
+}
+
+function validatePlanTask(str) {
+  const validRegex = new RegExp(
+    /^(?=.{1,45}$)[a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)*$/
+  );
+  return validRegex.test(str);
+}
+
+function validateWordCount(str) {
+  const validRegex = new RegExp(/^.{0,255}$/);
   return validRegex.test(str);
 }
 
@@ -33,12 +46,21 @@ exports.createApp = catchASyncError(async (req, res, next) => {
   const userId = req.user.username;
   console.log("CreateApp function requesting for username: ", req.user);
 
+  if (!validateInput(app_acronym)) {
+    throw next(
+      new ErrorHandler(
+        "App acronym has to have less than 45 characters and no special symbols or spaces",
+        400
+      )
+    );
+  }
+
   if (app_rnumber == "") {
     throw next(new ErrorHandler("App rnumber is required", 400));
   }
 
   // regex validation for rnumber to be within constraints
-  if (!validRnumber(app_rnumber) && app_rnumber < 200000) {
+  if (!validRnumber(app_rnumber) && app_rnumber < 100000) {
     throw next(
       new ErrorHandler(
         "App rnumber has to be more than 0 and a whole number",
@@ -47,17 +69,17 @@ exports.createApp = catchASyncError(async (req, res, next) => {
     );
   }
 
-  if (!app_acronym || app_acronym.trim() == "") {
-    throw next(new ErrorHandler("App acronym is required", 400));
-  }
-
-  if (app_acronym.length > 45 || !validateInput(app_acronym)) {
+  if (!validateWordCount(app_description)) {
     throw next(
       new ErrorHandler(
-        "App acronym has to have less than 45 characters and no special symbols or spaces",
+        "App description has to be less than 255 characters",
         400
       )
     );
+  }
+
+  if (!app_acronym || app_acronym.trim() == "") {
+    throw next(new ErrorHandler("App acronym is required", 400));
   }
 
   if (
@@ -154,7 +176,7 @@ exports.getApp = catchASyncError(async (req, res, next) => {
   });
 });
 
-exports.editApp = catchASyncError(async (req, res) => {
+exports.editApp = catchASyncError(async (req, res, next) => {
   var {
     app_acronym,
     app_description,
@@ -166,6 +188,33 @@ exports.editApp = catchASyncError(async (req, res) => {
     app_permit_doing,
     app_permit_done,
   } = req.body;
+
+  if (!validateWordCount(app_description)) {
+    throw next(
+      new ErrorHandler(
+        "App description has to be less than 255 characters",
+        400
+      )
+    );
+  }
+
+  if (!app_startdate || app_startdate === "") {
+    throw next(new ErrorHandler("App requires a start date", 400));
+  }
+
+  if (!app_enddate || app_enddate === "") {
+    throw next(new ErrorHandler("App requires a end date", 400));
+  }
+
+  if (
+    !app_permit_create ||
+    !app_permit_open ||
+    !app_permit_todolist ||
+    !app_permit_doing ||
+    !app_permit_done
+  ) {
+    throw next(new ErrorHandler("App permissions are required", 400));
+  }
 
   console.log(app_acronym);
 
@@ -208,7 +257,7 @@ exports.createPlan = catchASyncError(async (req, res, next) => {
     throw next(new ErrorHandler("Plan name is required", 400));
   }
 
-  if (!validateInput(plan_mvp_name)) {
+  if (!validatePlanTask(plan_mvp_name)) {
     throw next(
       new ErrorHandler(
         "Plan name has to have less than 45 characters and no special symbols",
@@ -457,12 +506,18 @@ exports.createTask = catchASyncError(async (req, res, next) => {
     task_notes = "";
   }
 
-  if (!validateInput(task_name)) {
+  if (!validatePlanTask(task_name)) {
     throw next(
       new ErrorHandler(
         "Task name has to have less than 45 characters and no special symbols",
         400
       )
+    );
+  }
+
+  if (!validatePlanTask(task_description)) {
+    throw next(
+      new ErrorHandler("Task description has to be less than 255 characters")
     );
   }
 
@@ -595,31 +650,6 @@ exports.getTaskPlans = catchASyncError(async (req, res, next) => {
   });
 });
 
-// exports.editTask = catchASyncError(async (req, res, next) => {
-//     var { task_id, task_description, task_status, task_notes, action} = req.body
-//     const task_owner = req.user.username;
-
-//     //validating if task_description is more than 255 characters
-
-//     // retrieving task
-//     const taskSQL = `SELECT * FROM tasks where task_id =?`
-//     const [taskSQLRows, fields] = await db.execute(taskSQL, [task_id])
-//     if (taskSQLRows.length === 0) {
-//         throw next(new ErrorHandler("Task does not exist", 400))
-//     }
-
-//     //storing retrieved task_state
-
-//     //storing previous task notes
-//     const prevNote = taskSQLRows[0].task_notes
-//     console.log(prevNote);
-
-//     return res.status(200).json({
-//         success: true,
-//         data: taskSQLRows[0]
-//     })
-// });
-
 exports.editTask = catchASyncError(async (req, res, next) => {
   var {
     task_id,
@@ -638,7 +668,13 @@ exports.editTask = catchASyncError(async (req, res, next) => {
   if (!task_notes || task_notes === undefined || task_notes.trim() === "") {
     task_notes = "";
   }
+
   //validating if task_description is more than 255 characters
+  if (!validatePlanTask(task_description)) {
+    throw next(
+      new ErrorHandler("Task description has to be less than 255 characters")
+    );
+  }
 
   // retrieving task
   const taskSQL = `SELECT * FROM tasks where task_id =?`;
@@ -742,6 +778,8 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
     throw next(new ErrorHandler("Task does not exist", 400));
   }
 
+  //storing initial task data to new data for email
+
   // checking user perms to make edits to task (not sure if needed)
   // because technically in front end API can be called to verify if button can be accessed
   let newState = "";
@@ -771,12 +809,27 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
   console.log("this is the state to check: ", task_status);
   console.log("task id to : ", task_id);
   console.log("permission to check: ", appPermission);
-  const sql = `SELECT ${appPermission} FROM applications WHERE app_acronym =?`;
+  const sql = `SELECT * FROM applications WHERE app_acronym =?`;
   const [rows, fields] = await db.execute(sql, [app_acronym]);
   console.log(
     "usergroup permissions retrieved from db: ",
     rows[0][appPermission]
   );
+  console.log(
+    "usergroup permissions retrieved from db: ",
+    rows[0]["app_permit_done"]
+  );
+
+  const getUserSQL = `SELECT email FROM accounts WHERE groupname = ? OR groupname LIKE ? OR groupname LIKE ? OR groupname LIKE ?`;
+  const [userSQLRow, userSQLFields] = await db.execute(getUserSQL, [
+    rows[0]["app_permit_done"],
+    `%,${rows[0]["app_permit_done"]}`,
+    `%,${rows[0]["app_permit_done"]},%`,
+    `${rows[0]["app_permit_done"]},%`,
+  ]);
+  console.log("User email : ", userSQLRow);
+  const emailArray = userSQLRow.map(({ email }) => email);
+  console.log("Email Array: ", emailArray);
 
   const userGroup = rows[0][appPermission];
   console.log(`Username: ${task_owner}, Usergroup: ${userGroup}`);
@@ -813,6 +866,15 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
   if (updateTaskRows.affectedRows === 0) {
     throw next(new ErrorHandler("Error editing notes", 400));
   }
+
+  if (task_status === "doing" && newState === "done") {
+    mailTester(
+      emailArray,
+      `Request for review`,
+      `${task_owner} has requested ${task_id} for approval`
+    );
+  }
+
   return res.status(200).json({
     success: true,
     data: taskSQLRows[0],
@@ -914,24 +976,7 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
     data: taskSQLRows[0],
   });
 });
-// getting user groups for app permissions for different states for ***TASK***
-// Open state app permissions - PM
-// ToDo state app permssions - Dev
-// Doing state app permssions - Dev
-// Done state app permssions -PL
-// =============================== WORK IN PROGRESS ====================================
-exports.getAppPermissions = catchASyncError(async (req, res) => {
-  const { task_app_acronym, task_state } = req.body; //
 
-  //sql statement to get the ncessary permissions for the app
-  // let taskPerms
-  // switch (task_state) {
-  //   case "open" :
-  //     taskPerms =
-
-  // }
-}); //
-// =============================== WORK IN PROGRESS ================================
 // --------------------------------- END OF TASK RELATED API ----------------------------------
 
 // GETTING APP PERMISSIONS FOR DIFFERENT TASK STATES SO THAT

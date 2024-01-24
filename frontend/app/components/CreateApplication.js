@@ -129,14 +129,14 @@ function CreateApp() {
       console.log(response.data);
       if (response) {
         handleAlerts("Application created", true);
-        setStartDate("");
-        setEndDate("");
+        setStartDate(null);
+        setEndDate(null);
         setAppData({
           app_acronym: "",
           app_description: "",
           app_rnumber: "",
-          app_startdate: "",
-          app_enddate: "",
+          app_startdate: null,
+          app_enddate: null,
           app_permit_create: "",
           app_permit_open: "",
           app_permit_todolist: "",
@@ -147,7 +147,14 @@ function CreateApp() {
     } catch (error) {
       console.log("Catching error for app creation: ", error);
       const errMessage = error.response.data.errMessage;
-      handleAlerts(errMessage, false);
+      if (
+        errMessage ===
+        `Duplicate entry '${newData.app_acronym}' for key 'applications.PRIMARY'`
+      ) {
+        handleAlerts(`${newData.app_acronym} already exists`);
+      } else {
+        handleAlerts(errMessage, false);
+      }
 
       // switch (error.response.data.errMessage) {
       //   case "App rnumber is required":
@@ -170,10 +177,12 @@ function CreateApp() {
       <Paper
         style={{
           padding: "20px",
-          marginTop: 40,
+          marginTop: 75,
           maxWidth: "800px",
           marginLeft: "auto",
           marginRight: "auto",
+          maxHeight: "80vh", // Adjust the height as needed
+          overflowY: "auto",
         }}
       >
         <form onSubmit={handleSubmit}>
@@ -237,7 +246,6 @@ function CreateApp() {
               <TableCell>
                 <TextField
                   type="number"
-                  defaultValue={0}
                   inputProps={{ min: 0, max: 100000 }}
                   onKeyDown={preventMinus}
                   name="app_rnumber"

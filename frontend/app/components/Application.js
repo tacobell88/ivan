@@ -183,12 +183,13 @@ function ViewApplication(props) {
       );
       console.log("Response for submit button: ", response);
       handleAlerts("Application information has been updated", true);
+      setIsEditMode(false);
     } catch (error) {
       console.log("Catching error for app creation: ", error);
       const errMessage = error.response.data.errMessage;
       handleAlerts(errMessage, false);
+      setIsEditMode(true);
     }
-    setIsEditMode(false);
   };
 
   return (

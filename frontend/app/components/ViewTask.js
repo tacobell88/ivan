@@ -30,6 +30,7 @@ const ViewTask = React.forwardRef((props, ref) => {
 
   const [demotable, setDemotable] = useState(false);
   const [promotable, setPromotable] = useState(false);
+  const [disablePlan, setDisablePlan] = useState(false);
 
   const [editMode, setEditMode] = useState();
 
@@ -67,7 +68,7 @@ const ViewTask = React.forwardRef((props, ref) => {
   useEffect(() => {
     const checkPermissions = async () => {
       try {
-        if (taskData.length === 0) return;
+        if (inittaskData.length === 0) return;
 
         const response = await axios.post(
           "http://localhost:8000/checkPerms",
@@ -90,7 +91,7 @@ const ViewTask = React.forwardRef((props, ref) => {
       }
     };
     checkPermissions();
-  }, [taskData]);
+  }, [inittaskData]);
 
   // handle change for input fields
   const handleChange = (event, newValue, name) => {
@@ -144,12 +145,6 @@ const ViewTask = React.forwardRef((props, ref) => {
   };
 
   const handleSaveClick = async () => {
-    // console.log("Save button clicked");
-    // console.log("clicking save taskData: ", taskData);
-    // console.log(`task_id: ${taskData[0].task_id},
-    //       task_description: ${taskData[0].task_description},
-    //       task_status: ${taskData[0].task_status},
-    //       task_notes: ${taskData[0].task_newNotes} `);
     try {
       //api to send to backend for edittask
       const response = await axios.post(
@@ -225,7 +220,6 @@ const ViewTask = React.forwardRef((props, ref) => {
     fetchAllPlans();
   }, []);
 
-  //useEffect for debugging purposes
   useEffect(() => {
     // if (taskData.length > 0) {
     console.log("Information in task data: ", taskData);
@@ -246,13 +240,14 @@ const ViewTask = React.forwardRef((props, ref) => {
     } else {
       setPromotable(true);
     }
-
-    // if (taskData[0]?.task_status === "done") {
-    //   if (inittaskData[0]?.task_plan === taskData[0]?.task_plan) {
-    //   }
-    //   // setPromotable(false)
-    //   // }
-    // }
+    if (
+      taskData[0]?.task_status === "open" ||
+      taskData[0]?.task_status === "done"
+    ) {
+      setDisablePlan(true);
+    } else {
+      setDisablePlan(false);
+    }
   }, [taskData]);
 
   // OPEN STATE, DOING STATE NO DEMOTING
@@ -351,7 +346,7 @@ const ViewTask = React.forwardRef((props, ref) => {
               </Typography>
               <Autocomplete
                 name="task_plan"
-                disabled={!editMode}
+                disabled={!(editMode && disablePlan)}
                 options={allPlans}
                 getOptionLabel={(option) => option}
                 renderInput={(params) => <TextField {...params} />}
@@ -380,6 +375,7 @@ const ViewTask = React.forwardRef((props, ref) => {
                 fullWidth
                 value={row.task_notes}
                 disabled={true}
+                style={{ maxWidth: 700 }}
               />
             </>
           ))}
@@ -392,10 +388,11 @@ const ViewTask = React.forwardRef((props, ref) => {
         <TextField
           name="task_newNotes"
           multiline
-          rows={20}
+          rows={13}
           fullWidth
           disabled={!editMode}
           onChange={handleAdditionalNotesChange}
+          style={{ maxWidth: 700 }}
         />
       </Box>
       <Box textAlign="center" sx={{ mt: 3 }}>

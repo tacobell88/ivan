@@ -94,8 +94,8 @@ function HomePage() {
 
   const handleCloseViewModal = () => {
     setViewModalOpen(false);
+    fetchAppData();
   };
-
 
   const handleKanban = (appId) => {
     navigate(`/app/${appId}/kanban`);
@@ -105,10 +105,13 @@ function HomePage() {
     fetchAppData();
     setOpen(false);
   };
-  
+
   useEffect(() => {
-    console.log('This is appId to be passed onto viewApplication: ', selectedAppId)
-  }, [selectedAppId])
+    console.log(
+      "This is appId to be passed onto viewApplication: ",
+      selectedAppId
+    );
+  }, [selectedAppId]);
 
   return (
     <Page title="Home Page">
@@ -197,13 +200,13 @@ function HomePage() {
                               {selectedAppId && <ViewApplication appId={selectedAppId} />}
                             </Modal> */}
                 <Modal open={viewModalOpen} onClose={handleCloseViewModal}>
-                            <ViewApplication appId={selectedAppId} />
+                  <ViewApplication appId={selectedAppId} />
                   {/* <div style={{ backgroundColor: 'white', padding: '20px' }}>
                     Test Modal Content
                   </div> */}
                 </Modal>
               </Box>
-            </Paper>    
+            </Paper>
           </Grid>
         </Grid>
       </div>
