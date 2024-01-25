@@ -96,9 +96,9 @@ exports.adminEditUser = catchASyncError(async (req, res, next) => {
   );
 
   if (!groupname.includes("admin")) {
-    console.log("groupname does not admin")
+    console.log("groupname does not admin");
   } else {
-    console.log("groupname has admin")
+    console.log("groupname has admin");
   }
 
   // email is optional so if email is not valid input, user email will be saved as null
@@ -111,7 +111,7 @@ exports.adminEditUser = catchASyncError(async (req, res, next) => {
   }
 
   if (groupname === "" || !groupname) {
-    throw next(new ErrorHandler("User group is mandatory", 400))
+    throw next(new ErrorHandler("User group is mandatory", 400));
   }
   console.log(`User group from admin editing function: ${groupname}`);
 
@@ -129,12 +129,16 @@ exports.adminEditUser = catchASyncError(async (req, res, next) => {
     password = null;
   }
 
-  if ((userId === "admin") && !(groupname.includes("admin"))) {
-    throw next(new ErrorHandler("Unable to remove admin user group from user", 400))
+  if (userId === "admin" && !groupname.includes("admin")) {
+    throw next(
+      new ErrorHandler("Unable to remove admin user group from user", 400)
+    );
   }
 
-  if ((groupname.includes("admin")) && isactive === "disabled") {
-    throw next(new ErrorHandler("Unable to disable user with admin rights", 400))
+  if (groupname.includes("admin") && isactive === "disabled") {
+    throw next(
+      new ErrorHandler("Unable to disable user with admin rights", 400)
+    );
   }
 
   //if password==null then use old password database value, if email==null then set null in database

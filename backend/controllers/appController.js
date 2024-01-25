@@ -657,6 +657,7 @@ exports.editTask = catchASyncError(async (req, res, next) => {
     app_acronym,
   } = req.body;
   const task_owner = req.user.username;
+  var emptyPlan;
 
   console.log(
     `task_id: ${task_id}, ${task_description}, ${task_status}, ${task_notes}, ${task_plan}, ${app_acronym}`
@@ -678,6 +679,10 @@ exports.editTask = catchASyncError(async (req, res, next) => {
   const [taskSQLRows, taskSQLfields] = await db.execute(taskSQL, [task_id]);
   if (taskSQLRows.length === 0) {
     throw next(new ErrorHandler("Task does not exist", 400));
+  }
+
+  if (taskSQLRows[0].task_plan === null) {
+    emptyPlan = "no plans assigned";
   }
 
   // checking user perms to make edits to task (not sure if needed)
@@ -719,6 +724,8 @@ exports.editTask = catchASyncError(async (req, res, next) => {
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
+  const prevPlan = taskSQLRows[0].task_plan;
+  console.log(prevPlan);
   console.log(prevNote);
 
   // date for audit trail
@@ -726,7 +733,8 @@ exports.editTask = catchASyncError(async (req, res, next) => {
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task edited on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n =================================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task edited on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n  Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =================================================================== \n`;
+
   const newNote = auditTrailLog + prevNote;
 
   const updateTaskSQL = `UPDATE tasks SET task_description =?, task_plan =?, task_notes=?, task_owner=? WHERE task_id=?`;
@@ -837,6 +845,7 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
 
   //storing retrieved task_state
   const prevState = taskSQLRows[0].task_status;
+  const prevPlan = taskSQLRows[0].task_plan;
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
@@ -846,7 +855,7 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task promoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task promoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
   const newNote = auditTrailLog + prevNote;
 
   const updateTaskSQL = `UPDATE tasks SET task_description =?, task_plan =?, task_notes=?, task_owner=?, task_status=? WHERE task_id=?`;
@@ -942,6 +951,7 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
 
   //storing retrieved task_state
   const prevState = taskSQLRows[0].task_status;
+  const prevPlan = taskSQLRows[0].task_plan;
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
@@ -951,7 +961,8 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task demoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task demoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  // const stateTrailLog = `${notesDelimiter}`
   const newNote = auditTrailLog + prevNote;
 
   const updateTaskSQL = `UPDATE tasks SET task_description =?, task_plan =?, task_notes=?, task_owner=?, task_status=? WHERE task_id=?`;

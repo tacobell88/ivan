@@ -60,6 +60,7 @@ const ViewTask = React.forwardRef((props, ref) => {
       );
       const planData = response.data.data.map((plan) => plan.plan_mvp_name);
       setAllPlans(planData);
+      setEditMode(true); // new changes
     } catch (error) {
       console.log(error);
     }
@@ -145,6 +146,8 @@ const ViewTask = React.forwardRef((props, ref) => {
   };
 
   const handleSaveClick = async () => {
+    // inverting the confirm as a shortcut so that you don't have to wrap it in if else?
+    if (!confirm("Are you sure you want to proceed?")) return;
     try {
       //api to send to backend for edittask
       const response = await axios.post(
@@ -158,8 +161,9 @@ const ViewTask = React.forwardRef((props, ref) => {
           app_acronym: appAcronym,
         }
       );
+
       handleAlerts("App edited succesffuly", true);
-      setEditMode(false);
+      setEditMode(true);
       fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
@@ -169,6 +173,7 @@ const ViewTask = React.forwardRef((props, ref) => {
   };
 
   const handlePromoteSaveClick = async () => {
+    if (!confirm("Are you sure you want to promote the task?")) return;
     try {
       //api to send to backend for promote task
       const response = await axios.post(
@@ -184,7 +189,7 @@ const ViewTask = React.forwardRef((props, ref) => {
       );
 
       handleAlerts("Task saved & promoted successfully", true);
-      setEditMode(false);
+      setEditMode(true);
       fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
@@ -193,6 +198,7 @@ const ViewTask = React.forwardRef((props, ref) => {
   };
 
   const handleDemoteSaveClick = async () => {
+    if (!confirm("Are you sure you want to demote the task?")) return;
     try {
       //api to send to backend for demote task
       const response = await axios.post(
@@ -207,7 +213,7 @@ const ViewTask = React.forwardRef((props, ref) => {
         }
       );
       handleAlerts("Task saved & demoted successfully", true);
-      setEditMode(false);
+      setEditMode(true);
       fetchTaskData();
     } catch (error) {
       const errMessage = error.response.data.errMessage;
@@ -300,7 +306,7 @@ const ViewTask = React.forwardRef((props, ref) => {
               </Typography>
               <Autocomplete
                 name="task_plan"
-                disabled={!(editMode && disablePlan)}
+                disabled={!(editMode && disablePlan && isPermitted)}
                 options={allPlans}
                 getOptionLabel={(option) => option}
                 renderInput={(params) => <TextField {...params} />}
@@ -317,7 +323,7 @@ const ViewTask = React.forwardRef((props, ref) => {
               </Typography>
               <TextField
                 name="task_description"
-                disabled={!editMode}
+                disabled={!(editMode && isPermitted)}
                 size="small"
                 multiline
                 rows={8}
@@ -404,7 +410,7 @@ const ViewTask = React.forwardRef((props, ref) => {
             multiline
             rows={13}
             fullWidth
-            disabled={!editMode}
+            disabled={!(editMode && isPermitted)}
             onChange={handleAdditionalNotesChange}
             style={{ maxWidth: 700 }}
           />
@@ -414,6 +420,7 @@ const ViewTask = React.forwardRef((props, ref) => {
         {isPermitted &&
           (editMode ? (
             <>
+              {/* 
               <Button
                 variant="outlined"
                 color="error"
@@ -422,6 +429,7 @@ const ViewTask = React.forwardRef((props, ref) => {
               >
                 Cancel
               </Button>
+              */}
               <Button
                 variant="outlined"
                 color="success"
