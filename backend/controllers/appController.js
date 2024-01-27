@@ -2,7 +2,7 @@ const db = require("../config/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const { mailTester } = require("../utils/nodemailer");
-const { Checkgroup } = require("./groupController");
+const { Checkgroup } = require("./GroupController");
 const dayjs = require("dayjs");
 
 function validRnumber(str) {
@@ -657,7 +657,6 @@ exports.editTask = catchASyncError(async (req, res, next) => {
     app_acronym,
   } = req.body;
   const task_owner = req.user.username;
-  var emptyPlan;
 
   console.log(
     `task_id: ${task_id}, ${task_description}, ${task_status}, ${task_notes}, ${task_plan}, ${app_acronym}`
@@ -668,7 +667,7 @@ exports.editTask = catchASyncError(async (req, res, next) => {
   }
 
   //validating if task_description is more than 255 characters
-  if (!validatePlanTask(task_description)) {
+  if (!validateWordCount(task_description)) {
     throw next(
       new ErrorHandler("Task description has to be less than 255 characters")
     );
@@ -681,8 +680,19 @@ exports.editTask = catchASyncError(async (req, res, next) => {
     throw next(new ErrorHandler("Task does not exist", 400));
   }
 
+  var prevPlan;
+  var currentPlan;
+
   if (taskSQLRows[0].task_plan === null) {
-    emptyPlan = "no plans assigned";
+    prevPlan = " ";
+  } else {
+    prevPlan = taskSQLRows[0].task_plan;
+  }
+
+  if (task_plan === null) {
+    currentPlan = "";
+  } else {
+    currentPlan = task_plan;
   }
 
   // checking user perms to make edits to task (not sure if needed)
@@ -724,16 +734,13 @@ exports.editTask = catchASyncError(async (req, res, next) => {
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
-  const prevPlan = taskSQLRows[0].task_plan;
-  console.log(prevPlan);
-  console.log(prevNote);
 
   // date for audit trail
   const currentDate = dayjs();
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task edited on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n  Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =================================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task edited on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from '${prevPlan}' to '${currentPlan}' \n Task description : ${task_description} \n Task notes : \n ${task_notes} \n\n =================================================================== \n`;
 
   const newNote = auditTrailLog + prevNote;
 
@@ -774,6 +781,12 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
   if (!task_notes || task_notes === undefined || task_notes.trim() === "") {
     task_notes = "";
   }
+
+  if (!validateWordCount(task_description)) {
+    throw next(
+      new ErrorHandler("Task description has to be less than 255 characters")
+    );
+  }
   //validating if task_description is more than 255 characters
 
   // retrieving task
@@ -811,9 +824,6 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
       throw next(new ErrorHandler("You have an error", 400));
   }
 
-  console.log("this is the state to check: ", task_status);
-  console.log("task id to : ", task_id);
-  console.log("permission to check: ", appPermission);
   const sql = `SELECT * FROM applications WHERE app_acronym =?`;
   const [rows, fields] = await db.execute(sql, [app_acronym]);
   console.log(
@@ -845,17 +855,31 @@ exports.promoteTask = catchASyncError(async (req, res, next) => {
 
   //storing retrieved task_state
   const prevState = taskSQLRows[0].task_status;
-  const prevPlan = taskSQLRows[0].task_plan;
+
+  //storing previous plan and current plan to manipulate what displays on the audit trail
+  var prevPlan;
+  var currentPlan;
+
+  if (taskSQLRows[0].task_plan === null) {
+    prevPlan = " ";
+  } else {
+    prevPlan = taskSQLRows[0].task_plan;
+  }
+
+  if (task_plan === null) {
+    currentPlan = "";
+  } else {
+    currentPlan = task_plan;
+  }
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
-  console.log(prevNote);
 
   const currentDate = dayjs();
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task promoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task promoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from '${prevPlan}' to '${currentPlan}' \n Task description : ${task_description} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
   const newNote = auditTrailLog + prevNote;
 
   const updateTaskSQL = `UPDATE tasks SET task_description =?, task_plan =?, task_notes=?, task_owner=?, task_status=? WHERE task_id=?`;
@@ -903,6 +927,11 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
   );
 
   //validating if task_description is more than 255 characters
+  if (!validateWordCount(task_description)) {
+    throw next(
+      new ErrorHandler("Task description has to be less than 255 characters")
+    );
+  }
 
   // retrieving task
   const taskSQL = `SELECT * FROM tasks where task_id =?`;
@@ -951,7 +980,22 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
 
   //storing retrieved task_state
   const prevState = taskSQLRows[0].task_status;
-  const prevPlan = taskSQLRows[0].task_plan;
+
+  //storing previous plan and current plan to manipulate what displays on the audit trail
+  var prevPlan;
+  var currentPlan;
+
+  if (taskSQLRows[0].task_plan === null) {
+    prevPlan = " ";
+  } else {
+    prevPlan = taskSQLRows[0].task_plan;
+  }
+
+  if (task_plan === null) {
+    currentPlan = "";
+  } else {
+    currentPlan = task_plan;
+  }
 
   //storing previous task notes
   const prevNote = taskSQLRows[0].task_notes;
@@ -961,7 +1005,7 @@ exports.demoteTask = catchASyncError(async (req, res, next) => {
   const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
 
   const notesDelimiter = " ====== ";
-  const auditTrailLog = `\n${notesDelimiter} Task demoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from ${prevPlan} to ${task_plan} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  const auditTrailLog = `\n${notesDelimiter} Task demoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from '${prevPlan}' to '${currentPlan}' \n Task description : ${task_description} \nTask notes : \n ${task_notes} \n\n =============================================================== \n`;
   // const stateTrailLog = `${notesDelimiter}`
   const newNote = auditTrailLog + prevNote;
 

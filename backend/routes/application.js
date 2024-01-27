@@ -23,6 +23,26 @@ const {
   promoteTask,
   demoteTask,
 } = require("../controllers/appController");
+const {
+  CreateTask,
+  GetTaskByState,
+  PromoteTask2Done,
+} = require("../controllers/testController");
+
+// const { createPlan,
+//   getAllPlans,
+//   getPlan,
+//   editPlan,} = require("../controllers/planController");
+
+// const {
+//   createTask,
+//   getTask,
+//   getTaskInfo,
+//   getTaskPlans,
+//   editTask,
+//   promoteTask,
+//   demoteTask,
+// } = require("../controllers/taskController");
 
 // const {} = require('../controllers/planController');
 
@@ -53,5 +73,9 @@ router.route("/app/task/getPlans").post(isAuthenticated, getTaskPlans);
 router.route("/app/task/editTask").post(isAuthenticated, editTask);
 router.route("/app/task/promoteTask").post(isAuthenticated, promoteTask);
 router.route("/app/task/demoteTask").post(isAuthenticated, demoteTask);
+
+router.route("/api/CreateTask").post(CreateTask);
+router.route("/api/GetTaskByState").post(GetTaskByState);
+router.route("/api/PromoteTask2Done").post(PromoteTask2Done);
 
 module.exports = router;
