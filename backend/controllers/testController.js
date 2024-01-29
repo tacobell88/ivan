@@ -29,11 +29,6 @@ function validateWordCount(str) {
   return validRegex.test(str);
 }
 
-// res.status(400).json({
-//   code: "",
-//   data: "",
-// });
-
 exports.CreateTask = catchASyncError(async (req, res, next) => {
   const {
     username,
@@ -58,7 +53,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!username || !password) {
     res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
@@ -66,7 +60,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!task_name || task_name.trim() === "") {
     res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
@@ -74,7 +67,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!task_app_acronym || task_app_acronym.trim() === "") {
     res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
@@ -88,7 +80,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (usernameRows.length === 0) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -99,14 +90,12 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!checkPassMatch) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
   if (usernameRows[0].isactive === "disabled") {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -118,7 +107,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (checkAppRows.length === 0) {
     return res.status(400).json({
       code: "A2",
-      message: "App does not exist",
     });
   }
 
@@ -135,7 +123,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (permSqlRows.length === 0) {
     return res.status(400).json({
       code: "A3",
-      message: "Not authorized / no perms to do something",
     });
   }
 
@@ -151,7 +138,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!checkPlanAuth) {
     return res.status(400).json({
       code: "A3",
-      message: "Not authorized / no perms to do something",
     });
   }
 
@@ -166,7 +152,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!validatePlanTask(task_name)) {
     return res.status(400).json({
       code: "E1",
-      message: "Task_name does not meet constraints",
     });
   }
 
@@ -174,7 +159,6 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   if (!validateWordCount(task_description)) {
     return res.status(400).json({
       code: "E2",
-      message: "Task_description does not meet constrains",
     });
   }
 
@@ -231,21 +215,18 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   if (!username || !password) {
     return res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
   if (!task_app_acronym || task_app_acronym.trim() === "") {
     return res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
   if (!task_status || task_status.trim() === "") {
     return res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
@@ -258,7 +239,6 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   if (usernameRows.length === 0) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -269,14 +249,12 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   if (!checkPassMatch) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
   if (usernameRows[0].isactive === "disabled") {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -291,7 +269,6 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   ) {
     return res.status(400).json({
       code: "E1",
-      message: "Task status does not meet constraints",
     });
   }
 
@@ -304,7 +281,6 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   if (checkAppExistRows.length === 0) {
     return res.status(400).json({
       code: "E2",
-      message: "Task app acronym does not exists",
     });
   }
 
@@ -317,7 +293,6 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   if (taskStateRows.length === 0) {
     return res.status(400).json({
       code: "E3",
-      message: "Application does not exist",
     });
   }
 
@@ -338,14 +313,12 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (!username || !password) {
     return res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
   if (!task_id || task_id.trim() === "") {
     return res.status(400).json({
       code: "V2",
-      message: "Missing mandatory fields",
     });
   }
 
@@ -358,7 +331,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (usernameRows.length === 0) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -369,14 +341,12 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (!checkPassMatch) {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
   if (usernameRows[0].isactive === "disabled") {
     return res.status(400).json({
       code: "A1",
-      message: "Not authenticated / cant login / inactive user",
     });
   }
 
@@ -391,7 +361,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (checkAppRows.length === 0) {
     return res.status(400).json({
       code: "A2",
-      message: "App does not exist",
     });
   }
 
@@ -407,7 +376,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (!checkPlanAuth) {
     return res.status(400).json({
       code: "A3",
-      message: "Not authorized / no perms to do something",
     });
   }
 
@@ -419,7 +387,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (checkTaskRows.length === 0) {
     return res.status(400).json({
       code: "E1",
-      message: "Task id does not exist",
     });
   }
 
@@ -428,7 +395,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   if (checkTaskRows[0].task_status !== "doing") {
     return res.status(400).json({
       code: "E2",
-      message: "Task is unable to be promoted",
     });
   }
 
@@ -470,8 +436,7 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
 
   if (updateTaskRows.affectedRows === 0) {
     return res.status(400).json({
-      code: "",
-      message: "error editing notes",
+      code: "E5",
     });
   }
 
