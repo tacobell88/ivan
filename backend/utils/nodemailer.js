@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.mailTester = catchASyncError(async (recipient, subject, body) => {
+exports.mailTester = (recipient, subject, body) => {
   const mailOptions = {
     from: "your_email@gmail.com",
     to: recipient,
@@ -32,4 +32,4 @@ exports.mailTester = catchASyncError(async (recipient, subject, body) => {
       console.log("Email sent: ", info.response);
     }
   });
-});
+};
