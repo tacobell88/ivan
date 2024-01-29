@@ -51,7 +51,7 @@ function CreateUser() {
         const validPattern = /^(?![0-9]*$)[a-zA-Z0-9]+$/ //regex expression for group checking
         if (!validPattern.test(userData.username)) {
             // setError("Group name must be a single word either alpha/alphanumberic")
-            alert('Username can only contain alpha/alphanumeric characters with no spaces');
+            handleAlerts('Username can only contain alpha/alphanumeric characters with no spaces', false);
             return;
         }
 
@@ -68,7 +68,7 @@ function CreateUser() {
             console.log('User creation response:', response.data);
             handleAlerts('User has been created', true);
             refreshUserData();
-            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: '' }); // Reset form fields
+            setUserData({ username: '', password: '', email: '', userGroups: [], userStatus: 'active' }); // Reset form fields
         } catch (error) {
             console.log('Error creating user:', error);
             if (error.response.data.errMessage == "Password needs to be 8-10char and contains alphanumeric and special character") {
@@ -127,7 +127,7 @@ function CreateUser() {
                         />
                     </Grid>
                     <Grid item>
-                    <FormControl variant="outlined" size="small" fullWidth>
+                        <FormControl variant="outlined" size="small" fullWidth>
                             <InputLabel>User Group</InputLabel>
                             <Select
                                 multiple
