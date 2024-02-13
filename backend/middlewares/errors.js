@@ -2,18 +2,31 @@ const ErrorHandler = require("../utils/errorHandler");
 
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
+  let error = { ...err };
 
   if (process.env.NODE_ENV === "development") {
-    // res.status(err.statusCode).json({
-    //   success: false,
-    //   error: err,
-    //   errMessage: err.message,
-    //   stack: err.stack,
-    // });
-    res.status(500).json({
-      code: "GG420",
-      message: "Internal Server Error",
-    });
+    if (err.code === "ER_DATA_TOO_LONG" && err.sqlMessage) {
+      return res.status(400).json({
+        code: "E2",
+      });
+    }
+    if (err.type === "entity.parse.failed") {
+      return res.status(400).json({
+        code: "V2",
+      });
+    } else {
+      // res.status(err.statusCode).json({
+      //   success: false,
+      //   error: err,
+      //   errMessage: err.message,
+      //   stack: err.stack,
+      // });
+      res.status(500).json({
+        error: err,
+        code: "GG420",
+        message: "Internal Server Error",
+      });
+    }
   }
 
   if (process.env.NODE_ENV === "production") {

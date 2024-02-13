@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../utils/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const { mailTester } = require("../utils/nodemailer");

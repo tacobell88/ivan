@@ -6,6 +6,9 @@ dotEnv.config({
   path: "../config/config.env",
 });
 
+console.log(process.env.port);
+console.log(process.env.DB_HOST);
+
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   host: "smtp.gmail.com",

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const catchASyncError = require("./catchASyncError");
-const db = require("../config/database");
+const db = require("../utils/database");
 const { Checkgroup } = require("../controllers/groupController");
 const ErrorHandler = require("../utils/errorHandler");
 

@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../utils/database");
 const bcrypt = require("bcryptjs");
 const ErrorHandler = require("../utils/errorHandler");
 const catchASyncError = require("../middlewares/catchASyncError");

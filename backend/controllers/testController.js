@@ -1,10 +1,11 @@
-const db = require("../config/database");
+const db = require("../utils/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const { Checkgroup } = require("./groupController");
 const bcrypt = require("bcryptjs");
 const dayjs = require("dayjs");
 const { mailTester } = require("../utils/nodemailer");
+const Str = require("@supercharge/strings");
 
 function validRnumber(str) {
   const validRegex = new RegExp(/^[0-9]\d*$/);
@@ -29,8 +30,12 @@ function validateWordCount(str) {
   return validRegex.test(str);
 }
 
+function stringChecker(str) {
+  return typeof str === "string";
+}
+
 exports.CreateTask = catchASyncError(async (req, res, next) => {
-  const {
+  var {
     username,
     password,
     task_name,
@@ -50,6 +55,22 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
 
   const task_status = "open";
 
+  if (
+    !(
+      typeof username === "string" &&
+      typeof password === "string" &&
+      typeof task_name === "string" &&
+      typeof task_app_acronym === "string" &&
+      typeof task_description === "string" &&
+      typeof task_notes === "string" &&
+      typeof task_plan === "string"
+    )
+  ) {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
+
   if (!username || !password) {
     res.status(400).json({
       code: "V2",
@@ -68,6 +89,10 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
     res.status(400).json({
       code: "V2",
     });
+  }
+
+  if (task_description === "") {
+    task_description = null;
   }
 
   // checking for user login credentials
@@ -162,8 +187,30 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
     });
   }
 
+  // const checkString = Str.isString(task_description);
+  // if (checkString) {
+  //   return res.status(400).json({
+  //     code: "E3",
+  //   });
+  // }
+
   // checking if task_plan exists
-  const checkPlanExist = `SELECT * FROM plans WHERE plan_name =?`;
+  if (!(task_plan === "")) {
+    const checkPlanExist = `SELECT * FROM plans WHERE plan_mvp_name =? AND plan_app_acronym=?`;
+    const [checkPlanRows, checkPlansField] = await db.execute(checkPlanExist, [
+      task_plan,
+      task_app_acronym,
+    ]);
+    if (checkPlanRows.length === 0) {
+      return res.status(400).json({
+        code: "E4",
+      });
+    }
+  }
+
+  if (task_plan === "") {
+    task_plan = null;
+  }
 
   // create information for audit trail log
   const currentDate = dayjs();
@@ -194,6 +241,8 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
     task_app_acronym,
   ]);
 
+  console.log(task_description);
+
   //update application app_rnumber
   const updateRnumSQL = `UPDATE applications SET app_rnumber=? WHERE app_acronym=?`;
   const [rnumRows, rnumFields] = await db.execute(updateRnumSQL, [
@@ -211,6 +260,19 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
 exports.GetTaskByState = catchASyncError(async (req, res, next) => {
   var { username, password, task_app_acronym, task_status } = req.body;
   // const { app_acronym, task_status } = req.body;
+
+  if (
+    !(
+      stringChecker(username) &&
+      stringChecker(password) &&
+      stringChecker(task_app_acronym) &&
+      stringChecker(task_status)
+    )
+  ) {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
 
   if (!username || !password) {
     return res.status(400).json({
@@ -284,7 +346,7 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
     });
   }
 
-  const taskStateSQL = `SELECT task_id from tasks where task_status =? AND task_app_acronym =?`;
+  const taskStateSQL = `SELECT * from tasks where task_status =? AND task_app_acronym =?`;
   const [taskStateRows, taskStateFields] = await db.execute(taskStateSQL, [
     task_status,
     task_app_acronym,
@@ -300,12 +362,25 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
 
   return res.status(200).json({
     code: "S1",
-    task_id: taskStateRows,
+    results: taskStateRows,
   });
 });
 
 exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   const { username, password, task_id, task_notes } = req.body;
+
+  if (
+    !(
+      stringChecker(username) &&
+      stringChecker(password) &&
+      stringChecker(task_id) &&
+      stringChecker(task_notes)
+    )
+  ) {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
 
   const splitTask = task_id.split("_");
   let task_app_acronym = splitTask[0];
@@ -460,7 +535,6 @@ exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   );
 
   return res.status(200).json({
-    task_id: task_id,
-    code: "",
+    code: "S1",
   });
 });
