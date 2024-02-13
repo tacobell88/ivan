@@ -2,7 +2,7 @@ const db = require("../config/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const { mailTester } = require("../utils/nodemailer");
-const { Checkgroup } = require("./GroupController");
+const { Checkgroup } = require("./groupController");
 const dayjs = require("dayjs");
 
 function validRnumber(str) {

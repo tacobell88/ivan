@@ -1,9 +1,10 @@
 const db = require("../config/database");
 const catchASyncError = require("../middlewares/catchASyncError");
 const ErrorHandler = require("../utils/errorHandler");
-const { Checkgroup } = require("../controllers/GroupController");
-const bcrypt = require('bcryptjs');
+const { Checkgroup } = require("./groupController");
+const bcrypt = require("bcryptjs");
 const dayjs = require("dayjs");
+const { mailTester } = require("../utils/nodemailer");
 
 function validRnumber(str) {
   const validRegex = new RegExp(/^[0-9]\d*$/);
@@ -29,90 +30,88 @@ function validateWordCount(str) {
 }
 
 exports.CreateTask = catchASyncError(async (req, res, next) => {
+  const {
+    username,
+    password,
+    task_name,
+    task_app_acronym,
+    task_description,
+    task_notes,
+    task_plan,
+  } = req.body;
+
   // const {
-  //   username,
-  //   password,
   //   task_name,
-  //   app_acronym,
+  //   task_app_acronym,
   //   task_description,
   //   task_notes,
   //   task_plan,
   // } = req.body;
 
-  const {
-    task_name,
-    app_acronym,
-    task_description,
-    task_notes,
-    task_plan,
-  } = req.body;
-  
   const task_status = "open";
 
   if (!username || !password) {
     res.status(400).json({
-      code : "",
-      data : ""
-    })
+      code: "V2",
+    });
   }
-
-  const usernameSQL = `SELECT * FROM accounts where username=?`
-  const [usernameRows, usernameFields] = await db.execute(sql, [username])
-
-  // checking if username exist in database
-  if (usernameRows.length === 0) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
-  }
-
-  const checkPassMatch = await bcrypt.compare(password, usernameRows[0].password);
-  if(!checkPassMatch) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
-  }
-
-  if (usernameRows[0].isactive === "disabled") {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
-  }
-
-  const task_owner = username;
-  const task_creator = username;
 
   // checking if there is  task_name input
   if (!task_name || task_name.trim() === "") {
     res.status(400).json({
-      code : "",
-      data :""
-    })
+      code: "V2",
+    });
   }
 
-  // validating task notes and making it empty string if no notes typed
-  if (!task_notes || task_notes === undefined || task_notes.trim() === "") {
-    task_notes = "";
-  }
-
-  // checking if task_name conforms to constraints
-  if (!validatePlanTask(task_name)) {
+  //checking if there is task_app_acronym input
+  if (!task_app_acronym || task_app_acronym.trim() === "") {
     res.status(400).json({
-      code : "",
-      data :""
-    })
+      code: "V2",
+    });
   }
 
-  // checking if task_description is less than 255 characters
-  if (!validatePlanTask(task_description)) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+  // checking for user login credentials
+  const usernameSQL = `SELECT * FROM accounts where username=?`;
+  const [usernameRows, usernameFields] = await db.execute(usernameSQL, [
+    username,
+  ]);
+
+  // checking if username exist in database
+  if (usernameRows.length === 0) {
+    return res.status(400).json({
+      code: "A1",
+    });
   }
+
+  const checkPassMatch = await bcrypt.compare(
+    password,
+    usernameRows[0].password
+  );
+  if (!checkPassMatch) {
+    return res.status(400).json({
+      code: "A1",
+    });
+  }
+
+  if (usernameRows[0].isactive === "disabled") {
+    return res.status(400).json({
+      code: "A1",
+    });
+  }
+
+  const checkAppExist = `SELECT * FROM applications where app_acronym =?`;
+  const [checkAppRows, checkAppFields] = await db.execute(checkAppExist, [
+    task_app_acronym,
+  ]);
+
+  if (checkAppRows.length === 0) {
+    return res.status(400).json({
+      code: "A2",
+    });
+  }
+
+  const task_owner = username;
+  const task_creator = username;
 
   // checking user permissions for access management
   const permSql = `SELECT app_permit_create, app_rnumber FROM applications where app_acronym =?`;
@@ -122,10 +121,9 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
 
   // could be an unneccessary check because app_permits cannot accept null values
   if (permSqlRows.length === 0) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A3",
+    });
   }
 
   // logging the permission result
@@ -138,11 +136,34 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
     permSqlRows[0].app_permit_create,
   ]);
   if (!checkPlanAuth) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A3",
+    });
   }
+
+  // checking for E onward error codes
+
+  // validating task notes and making it empty string if no notes typed
+  if (!task_notes || task_notes === undefined || task_notes.trim() === "") {
+    task_notes = "";
+  }
+
+  // checking if task_name conforms to constraints
+  if (!validatePlanTask(task_name)) {
+    return res.status(400).json({
+      code: "E1",
+    });
+  }
+
+  // checking if task_description is less than 255 characters
+  if (!validateWordCount(task_description)) {
+    return res.status(400).json({
+      code: "E2",
+    });
+  }
+
+  // checking if task_plan exists
+  const checkPlanExist = `SELECT * FROM plans WHERE plan_name =?`;
 
   // create information for audit trail log
   const currentDate = dayjs();
@@ -161,108 +182,124 @@ exports.CreateTask = catchASyncError(async (req, res, next) => {
   const createTaskSQL = `INSERT INTO tasks VALUES(?,?,?,?,?,?,?,?,?,?)`;
 
   const [createTaskRows, crreateTaskFields] = await db.execute(createTaskSQL, [
-    task_name, task_id, task_description, task_status, task_owner, task_creator, task_createdate, auditTrailLog, task_plan, app_acronym
-  ])
+    task_name,
+    task_id,
+    task_description,
+    task_status,
+    task_owner,
+    task_creator,
+    task_createdate,
+    auditTrailLog,
+    task_plan,
+    task_app_acronym,
+  ]);
 
   //update application app_rnumber
   const updateRnumSQL = `UPDATE applications SET app_rnumber=? WHERE app_acronym=?`;
   const [rnumRows, rnumFields] = await db.execute(updateRnumSQL, [
     newRnum,
-    app_acronym,
+    task_app_acronym,
   ]);
 
   // success code
   return res.status(200).json({
-    code : "",
-      data :""
+    code: "S1",
+    data: task_id,
   });
 });
 
 exports.GetTaskByState = catchASyncError(async (req, res, next) => {
-  // const { username, password, app_acronym, task_status } = req.body;
-  const { app_acronym, task_status } = req.body;
+  var { username, password, task_app_acronym, task_status } = req.body;
+  // const { app_acronym, task_status } = req.body;
 
   if (!username || !password) {
-    res.status(400).json({
-      code : "",
-      data : ""
-    })
+    return res.status(400).json({
+      code: "V2",
+    });
   }
 
-  const usernameSQL = `SELECT * FROM accounts where username=?`
-  const [usernameRows, usernameFields] = await db.execute(sql, [username])
+  if (!task_app_acronym || task_app_acronym.trim() === "") {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
+
+  if (!task_status || task_status.trim() === "") {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
+
+  const usernameSQL = `SELECT * FROM accounts where username=?`;
+  const [usernameRows, usernameFields] = await db.execute(usernameSQL, [
+    username,
+  ]);
 
   // checking if username exist in database
   if (usernameRows.length === 0) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A1",
+    });
   }
 
-  const checkPassMatch = await bcrypt.compare(password, usernameRows[0].password);
-  if(!checkPassMatch) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+  const checkPassMatch = await bcrypt.compare(
+    password,
+    usernameRows[0].password
+  );
+  if (!checkPassMatch) {
+    return res.status(400).json({
+      code: "A1",
+    });
   }
 
   if (usernameRows[0].isactive === "disabled") {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A1",
+    });
   }
 
-  // checking user permissions for access management
-  const permSql = `SELECT app_permit_create, app_rnumber FROM applications where app_acronym =?`;
-  const [permSqlRows, permSqlFields] = await db.execute(permSql, [
-    task_app_acronym,
-  ]);
+  console.log(task_status);
 
-  // could be an unneccessary check because app_permits cannot accept null values
-  if (permSqlRows.length === 0) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+  if (
+    task_status !== "open" &&
+    task_status !== "todo" &&
+    task_status !== "doing" &&
+    task_status !== "done" &&
+    task_status !== "closed"
+  ) {
+    return res.status(400).json({
+      code: "E1",
+    });
   }
 
-  // logging the permission result
-  console.log("This is query result of permsql: ", [
-    permSqlRows[0].app_permit_create,
-  ]);
+  const checkAppExistSQL = `SELECT * FROM applications WHERE app_acronym =?`;
+  const [checkAppExistRows, checkAppExistFields] = await db.execute(
+    checkAppExistSQL,
+    [task_app_acronym]
+  );
 
-  // checking if user that is trying to create the plan
-  const checkPlanAuth = await Checkgroup(task_owner, [
-    permSqlRows[0].app_permit_create,
-  ]);
-  if (!checkPlanAuth) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+  if (checkAppExistRows.length === 0) {
+    return res.status(400).json({
+      code: "E2",
+    });
   }
-
 
   const taskStateSQL = `SELECT task_id from tasks where task_status =? AND task_app_acronym =?`;
   const [taskStateRows, taskStateFields] = await db.execute(taskStateSQL, [
     task_status,
-    app_acronym,
+    task_app_acronym,
   ]);
 
   if (taskStateRows.length === 0) {
-    res.status(400).json({
-      code: "SB001",
-      message: "Application does not exist",
+    return res.status(400).json({
+      code: "E3",
     });
   }
 
-  const taskIds = taskStateRows.map((row) => row.task_id);
+  // const taskIds = taskStateRows.map((row) => row.task_id);
 
   return res.status(200).json({
-    code: "TXN001",
+    code: "S1",
     task_id: taskStateRows,
   });
 });
@@ -270,37 +307,160 @@ exports.GetTaskByState = catchASyncError(async (req, res, next) => {
 exports.PromoteTask2Done = catchASyncError(async (req, res, next) => {
   const { username, password, task_id, task_notes } = req.body;
 
+  const splitTask = task_id.split("_");
+  let task_app_acronym = splitTask[0];
+
   if (!username || !password) {
-    res.status(400).json({
-      code : "",
-      data : ""
-    })
+    return res.status(400).json({
+      code: "V2",
+    });
   }
 
-  const usernameSQL = `SELECT * FROM accounts where username=?`
-  const [usernameRows, usernameFields] = await db.execute(sql, [username])
+  if (!task_id || task_id.trim() === "") {
+    return res.status(400).json({
+      code: "V2",
+    });
+  }
+
+  const usernameSQL = `SELECT * FROM accounts where username=?`;
+  const [usernameRows, usernameFields] = await db.execute(usernameSQL, [
+    username,
+  ]);
 
   // checking if username exist in database
   if (usernameRows.length === 0) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A1",
+    });
   }
 
-  const checkPassMatch = await bcrypt.compare(password, usernameRows[0].password);
-  if(!checkPassMatch) {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+  const checkPassMatch = await bcrypt.compare(
+    password,
+    usernameRows[0].password
+  );
+  if (!checkPassMatch) {
+    return res.status(400).json({
+      code: "A1",
+    });
   }
 
   if (usernameRows[0].isactive === "disabled") {
-    res.status(400).json({
-      code : "",
-      data :""
-    })
+    return res.status(400).json({
+      code: "A1",
+    });
   }
-  
+
+  const task_owner = username;
+
+  // checking if app exists
+  const checkAppExist = `SELECT * FROM applications where app_acronym =?`;
+  const [checkAppRows, checkAppFields] = await db.execute(checkAppExist, [
+    task_app_acronym,
+  ]);
+
+  if (checkAppRows.length === 0) {
+    return res.status(400).json({
+      code: "A2",
+    });
+  }
+
+  // logging the permission result
+  console.log("This is taken from query result of checkAppExist: ", [
+    checkAppRows[0].app_permit_doing,
+  ]);
+
+  // checking if user that is trying to promote the task to done has appropriate permissions
+  const checkPlanAuth = await Checkgroup(task_owner, [
+    checkAppRows[0].app_permit_doing,
+  ]);
+  if (!checkPlanAuth) {
+    return res.status(400).json({
+      code: "A3",
+    });
+  }
+
+  const checkTaskInfoSQL = `SELECT * FROM tasks WHERE task_id = ?`;
+  const [checkTaskRows, checkTaskFields] = await db.execute(checkTaskInfoSQL, [
+    task_id,
+  ]);
+
+  if (checkTaskRows.length === 0) {
+    return res.status(400).json({
+      code: "E1",
+    });
+  }
+
+  console.log(`Task id task_status : ${checkTaskRows[0].task_status}`);
+
+  if (checkTaskRows[0].task_status !== "doing") {
+    return res.status(400).json({
+      code: "E2",
+    });
+  }
+
+  // the following codes are for audit trail log:
+  const task_description = checkTaskRows[0].task_description;
+  const prevState = checkTaskRows[0].task_status;
+  let newState = "done";
+
+  var prevPlan;
+  var currentPlan;
+
+  if (checkTaskRows[0].task_plan === null) {
+    prevPlan = " ";
+    currentPlan = " ";
+  } else {
+    prevPlan = checkTaskRows[0].task_plan;
+    currentPlan = checkTaskRows[0].task_plan;
+  }
+
+  const prevNote = checkTaskRows[0].task_notes;
+
+  const currentDate = dayjs();
+  const formattedDate = currentDate.format("DD-MM-YYYY HH:mm:ss");
+
+  const notesDelimiter = " ====== ";
+  const auditTrailLog = `\n${notesDelimiter} Task promoted from ${prevState} to ${newState} on: ${formattedDate} by user : ${task_owner} ${notesDelimiter}\n Plan Changed from '${prevPlan}' to '${currentPlan}' \n Task description : ${task_description} \n Task notes : \n ${task_notes} \n\n =============================================================== \n`;
+  const newNote = auditTrailLog + prevNote;
+  // end of audit trail long notes
+
+  // for final sql to update database
+  const updateTaskSQL = `UPDATE tasks SET task_notes=?, task_owner=?, task_status=? WHERE task_id=?`;
+
+  const [updateTaskRows, updateTaskFields] = await db.execute(updateTaskSQL, [
+    newNote,
+    task_owner,
+    newState,
+    task_id,
+  ]);
+
+  if (updateTaskRows.affectedRows === 0) {
+    return res.status(400).json({
+      code: "E5",
+    });
+  }
+
+  //getting emails to send to user
+  const getUserSQL = `SELECT email FROM accounts WHERE groupname = ? OR groupname LIKE ? OR groupname LIKE ? OR groupname LIKE ?`;
+  const [userSQLRow, userSQLFields] = await db.execute(getUserSQL, [
+    checkAppRows[0]["app_permit_done"],
+    `%,${checkAppRows[0]["app_permit_done"]}`,
+    `%,${checkAppRows[0]["app_permit_done"]},%`,
+    `${checkAppRows[0]["app_permit_done"]},%`,
+  ]);
+
+  console.log("User email : ", userSQLRow);
+  const emailArray = userSQLRow.map(({ email }) => email);
+  console.log("Email Array: ", emailArray);
+
+  mailTester(
+    emailArray,
+    `Request for review`,
+    `${task_owner} has requested ${task_id} for approval`
+  );
+
+  return res.status(200).json({
+    task_id: task_id,
+    code: "",
+  });
 });

@@ -1,77 +1,55 @@
-use assignment1;
+CREATE TABLE `accounts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `groupname` varchar(255) NOT NULL,
+  `isactive` varchar(15) DEFAULT NULL,
+  PRIMARY KEY (`username`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
 
-DROP TABLE accounts;
+CREATE TABLE `tasks` (
+  `task_name` varchar(255) NOT NULL,
+  `task_id` varchar(125) NOT NULL,
+  `task_description` varchar(255) DEFAULT NULL,
+  `task_status` varchar(45) NOT NULL DEFAULT 'Open',
+  `task_creator` varchar(50) NOT NULL,
+  `task_owner` varchar(50) NOT NULL,
+  `task_createdate` date NOT NULL,
+  `task_notes` longtext,
+  `task_plan` varchar(45) DEFAULT NULL,
+  `task_app_acronym` varchar(45) NOT NULL,
+  PRIMARY KEY (`task_id`),
+  UNIQUE KEY `task_id_UNIQUE` (`task_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
-CREATE TABLE IF NOT EXISTS `accounts` (
- `id` INT NOT NULL AUTO_INCREMENT,
- `username` varchar(50) NOT NULL,
- `password` varchar(255) NOT NULL,
- `email` varchar(100),
- `user_group` varchar(255) NOT NULL,
- `user_status` varchar(15),
- UNIQUE KEY (`id`),
- PRIMARY KEY (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `plans` (
+  `plan_mvp_name` varchar(255) NOT NULL,
+  `plan_startdate` varchar(45) NOT NULL,
+  `plan_enddate` varchar(45) NOT NULL,
+  `plan_app_acronym` varchar(45) NOT NULL,
+  PRIMARY KEY (`plan_mvp_name`,`plan_app_acronym`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
-ALTER TABLE `grouplist` ADD PRIMARY KEY (`user_group`);
+CREATE TABLE `grouplist` (
+  `groupname` varchar(100) NOT NULL,
+  PRIMARY KEY (`groupname`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
-INSERT INTO `accounts` (`username`, `password`, `email`, `user_group`, `status`) VALUES ('test',
-'test', 'test@test.com', NULL, 'active');
+CREATE TABLE `applications` (
+  `app_acronym` varchar(45) NOT NULL,
+  `app_description` varchar(255) DEFAULT NULL,
+  `app_rnumber` int NOT NULL,
+  `app_startdate` varchar(50) NOT NULL,
+  `app_enddate` varchar(45) NOT NULL,
+  `app_permit_create` varchar(45) NOT NULL,
+  `app_permit_open` varchar(45) NOT NULL,
+  `app_permit_todolist` varchar(45) NOT NULL,
+  `app_permit_doing` varchar(45) NOT NULL,
+  `app_permit_done` varchar(45) NOT NULL,
+  PRIMARY KEY (`app_acronym`),
+  UNIQUE KEY `app_acronym_UNIQUE` (`app_acronym`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
-ALTER TABLE `accounts` ADD PRIMARY KEY (`username`);
-
-CREATE TABLE IF NOT EXISTS `grouplist` (
- `user_group` varchar(100)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-INSERT INTO `grouplist` (`user_group`) VALUES ('admin');
-
-ALTER TABLE `grouplist` 
-MODIFY `user_group` varchar(100)
-NOT NULL;
-
-ALTER TABLE `accounts` MODIFY `email` varchar(50) NULL;
-
-SELECT * from assignment1.grouplist;
-
-INSERT INTO `accounts` (`username`, `password`, `email`, `user_group`, `user_status`) VALUES ('test2',
-'test2', 'test@test.com', NULL, 'active');
-INSERT INTO `accounts` (`username`, `password`, `email`, `user_group`, `user_status`) VALUES ('test3',
-'test3', 'test@test.com', NULL, 'active');
-INSERT INTO `accounts` (`username`, `password`, `email`, `user_group`, `user_status`) VALUES ('test4',
-'test4', 'test@test.com', NULL, 'active');
-INSERT INTO `accounts` (`username`, `password`, `email`, `user_group`, `user_status`) VALUES ('test5',
-'test5', 'test@test.com', NULL, 'disabled');
-
-UPDATE accounts SET user_status = 'disabled' WHERE username = 'test';
-
-ALTER TABLE accounts RENAME COLUMN `status` TO `user_status`;
-
-DELETE FROM accounts WHERE username = 'test';
-
-DELETE FROM grouplist WHERE user_group = 'project lead';
-
-SELECT user_group FROM grouplist;
-
-
-
-SELECT * FROM assignment1.accounts;
-
-DROP TABLE grouplist;
-
-select * from accounts where `user_group` is null;
-
-ALTER TABLE accounts rename column `status` to `user_status`;
-
-ALTER TABLE `accounts` MODIFY `email` varchar(50) DEFAULT NULL;
-ALTER TABLE `accounts` MODIFY `user_group` varchar(50) DEFAULT NULL;
-
-UPDATE `accounts` SET `user_group` = 'admin' WHERE `username` = 'test';
-UPDATE `accounts` SET `user_group` = 'pl,dev,police' WHERE `username` = 'test';
-
-INSERT INTO `grouplist` (`user_group`) VALUES ('pm');
-DELETE FROM grouplist WHERE user_group = 'pangsai';
-DELETE FROM accounts WHERE id = '2';
-
-UPDATE `accounts` SET `email` = 'test@gmail.com' WHERE `username` = 'test';
-UPDATE `accounts` SET `email` = 'test1@gmail.com' WHERE `username` = 'test1';
+https://github.com/JFooCZ/TMS-0723/tree/main/TMS%20folder%20GG/client/app/components
